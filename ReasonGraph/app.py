@@ -1,5 +1,9 @@
 from flask import Flask, render_template, request, jsonify
 from api_base import create_api  # New import for API factory
+from plain_text_reasoning import (
+    create_mermaid_diagram as create_plain_diagram,
+    parse_plain_text_response
+)
 from cot_reasoning import (
     VisualizationConfig,
     create_mermaid_diagram as create_cot_diagram,
@@ -77,6 +81,41 @@ def get_provider_api_key(provider):
         })
     except Exception as e:
         logger.error(f"Error getting API key for provider {provider}: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/save-api-key', methods=['POST'])
+def save_api_key():
+    """Save API key for a provider in memory only (no file storage)"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+
+        provider = data.get('provider')
+        api_key = data.get('api_key')
+
+        if not provider or not api_key:
+            return jsonify({
+                'success': False,
+                'error': 'Provider and API key are required'
+            }), 400
+
+        # Update API key in config (this updates the in-memory API keys only)
+        config.general.provider_api_keys[provider] = api_key
+        logger.info(f"Saved API key for provider: {provider} (in memory only)")
+
+        return jsonify({
+            'success': True
+        })
+        
+    except Exception as e:
+        logger.error(f"Error saving API key: {str(e)}")
         return jsonify({
             'success': False,
             'error': str(e)
@@ -233,6 +272,9 @@ def process():
             elif reasoning_method == 'bs':
                 result = parse_bs_response(raw_response, question)
                 visualization = create_bs_diagram(result, viz_config)
+            elif reasoning_method == 'plain':
+                parse_plain_text_response(raw_response, question)
+                visualization = None
                 
             logger.info("Successfully generated visualization")
         except Exception as viz_error:

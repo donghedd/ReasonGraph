@@ -49,6 +49,7 @@ class GeneralConfig:
         "gemini-1.5-flash",
         "gemini-1.5-flash-8b",
         "gemini-1.5-pro",
+        "gemini-2.0-flash-thinking-exp", 
         # Together AI Models
         "meta-llama/Llama-3.3-70B-Instruct-Turbo",
         #"meta-llama/Llama-3.2-3B-Instruct-Turbo", 
@@ -75,6 +76,7 @@ class GeneralConfig:
         #"nvidia/Llama-3.1-Nemotron-70B-Instruct-HF",
         # DeepSeek Models
         "deepseek-chat",
+        "deepseek-reasoner",
         # Qwen Models
         "qwen-max",
         "qwen-max-latest",
@@ -85,6 +87,7 @@ class GeneralConfig:
         "qwen-turbo",
         "qwen-turbo-latest",
         "qwen-turbo-2024-11-01",
+        "qwq-plus",
         #"qwen2.5-14b-instruct-1m",
         #"qwen2.5-7b-instruct-1m",
         "qwen2.5-72b-instruct",
@@ -114,6 +117,7 @@ class GeneralConfig:
         "gemini-1.5-flash": "google",
         "gemini-1.5-flash-8b": "google",
         "gemini-1.5-pro": "google",
+        "gemini-2.0-flash-thinking-exp": "google", 
         "meta-llama/Llama-3.3-70B-Instruct-Turbo": "together",
         #"meta-llama/Llama-3.2-3B-Instruct-Turbo": "together", 
         "meta-llama/Meta-Llama-3.1-405B-Instruct-Lite-Pro": "together",
@@ -138,6 +142,7 @@ class GeneralConfig:
         #"databricks/dbrx-instruct": "together",
         #"nvidia/Llama-3.1-Nemotron-70B-Instruct-HF": "together",
         "deepseek-chat": "deepseek",
+        "deepseek-reasoner": "deepseek",
         "qwen-max": "qwen",
         "qwen-max-latest": "qwen",
         "qwen-max-2025-01-25": "qwen",
@@ -147,6 +152,7 @@ class GeneralConfig:
         "qwen-turbo": "qwen",
         "qwen-turbo-latest": "qwen",
         "qwen-turbo-2024-11-01": "qwen",
+        "qwq-plus": "qwen",
         #"qwen2.5-14b-instruct-1m": "qwen",
         #"qwen2.5-7b-instruct-1m": "qwen",
         "qwen2.5-72b-instruct": "qwen",
@@ -168,6 +174,13 @@ class GeneralConfig:
     def get_default_api_key(self, provider: str) -> str:
         """Get default API key for specific provider"""
         return self.provider_api_keys.get(provider, "")
+
+@dataclass
+class PlainTextConfig:
+    """Configuration specific to Plain Text method (no visualization)"""
+    name: str = "Plain Text"
+    prompt_format: str = '''{question}'''
+    example_question: str = "Who are you?"
 
 @dataclass
 class ChainOfThoughtsConfig:
@@ -373,6 +386,7 @@ class ReasoningConfig:
             "srf": SelfRefineConfig(),
             "l2m": LeastToMostConfig(),
             "bs": BeamSearchConfig(),
+            "plain": PlainTextConfig(),
         }
     
     def get_method_config(self, method_id: str) -> Optional[dict]:

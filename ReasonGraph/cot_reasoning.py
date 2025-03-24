@@ -84,28 +84,20 @@ Note:
 """
 
 def wrap_text(text: str, config: VisualizationConfig) -> str:
-    """
-    Wrap text to fit within box constraints with proper line breaks.
-    
-    Args:
-        text: The text to wrap
-        config: VisualizationConfig containing formatting parameters
-    
-    Returns:
-        Wrapped text with line breaks
-    """
-    # Clean the text first
+    """Wrap text to fit within box constraints"""
     text = text.replace('\n', ' ').replace('"', "'")
-    
-    # Wrap the text into lines
     wrapped_lines = textwrap.wrap(text, width=config.max_chars_per_line)
     
-    # Limit number of lines and add truncation if necessary
     if len(wrapped_lines) > config.max_lines:
-        wrapped_lines = wrapped_lines[:config.max_lines-1]
-        wrapped_lines.append(wrapped_lines[-1][:config.max_chars_per_line-3] + config.truncation_suffix)
+        # Option 1: Simply truncate and add ellipsis to the last line
+        wrapped_lines = wrapped_lines[:config.max_lines]
+        wrapped_lines[-1] = wrapped_lines[-1][:config.max_chars_per_line-3] + "..."
+        
+        # Option 2 (alternative): Include part of the next line to show continuity
+        # original_next_line = wrapped_lines[config.max_lines] if len(wrapped_lines) > config.max_lines else ""
+        # wrapped_lines = wrapped_lines[:config.max_lines-1]
+        # wrapped_lines.append(original_next_line[:config.max_chars_per_line-3] + "...")
     
-    # Join with <br> for HTML line breaks in Mermaid
     return "<br>".join(wrapped_lines)
 
 def parse_cot_response(response_text: str, question: str) -> CoTResponse:

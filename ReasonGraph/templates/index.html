@@ -135,6 +135,7 @@
             justify-content: center;
             gap: 0;
             white-space: nowrap;
+            margin-top: 30px; /* Added space to move links lower */
         }
 
         .links a {
@@ -148,6 +149,11 @@
         .links a:hover {
             opacity: 1;
             text-decoration: underline;
+        }
+        
+        .link-separator {
+            color: white;
+            opacity: 0.9;
         }
 
         .container {
@@ -296,6 +302,13 @@
             background-color: #e5e7eb;
         }
 
+        .zoom-button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            color: white;
+            border-color: #9ca3af;
+        }
+
         .zoom-level {
             font-size: 14px;
             color: #374151;
@@ -324,6 +337,80 @@
             background-color: #f8f9fa;
         }
 
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            top: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent #555 transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* New tooltip-top class for tooltips that appear above elements */
+        .tooltip-top .tooltiptext {
+            bottom: 125%; /* Position above instead of below */
+            top: auto; /* Override the default top value */
+        }
+
+        .tooltip-top .tooltiptext::after {
+            top: 100%; /* Arrow at the bottom rather than top */
+            bottom: auto; /* Override the default bottom value */
+            border-color: #555 transparent transparent transparent; /* Arrow pointing down */
+        }
+
+        .tooltip-wrap .tooltiptext {
+            width: 440px;
+            margin-left: -110px;
+            white-space: normal;
+            font-size: 14px;
+        }
+
+        .lang-tooltip .tooltiptext {
+            width: 440px;
+            margin-left: 0;
+            transform: translateX(-50%);
+            font-size: 14px;
+            white-space: normal;
+            font-weight: normal;
+        }
+
+        .english-tooltip .tooltiptext {
+            left: 40%;
+        }
+    
+        .chinese-tooltip .tooltiptext {
+            left: 50%;
+        }
+
         .mermaid {
             padding: 0;
             border-radius: 4px;
@@ -337,7 +424,7 @@
 <body>
     <div class="banner">
         <div class="banner-content">
-            <h1>ReasonGraph: Visualisation of Reasoning Paths</h1>
+            <h1>ReasonGraph</h1>
             <div class="search-area">
                 <div class="search-input-container">
                     <textarea id="question" class="search-input" placeholder="Enter your question here..." rows="1"></textarea>
@@ -347,15 +434,24 @@
                     <select class="param-input" id="reasoning-method">
                         <!-- Populated dynamically -->
                     </select>
-                    <button onclick="metaReasoning()" id="meta-btn">Meta Reasoning</button>
-                    <button onclick="processQuestion()" id="process-btn">Start Reasoning</button>
+                    <button onclick="metaReasoning()" id="meta-btn" class="tooltip">Meta Reasoning
+                        <span class="tooltiptext">Use reasoning method self-selected by the model</span>
+                    </button>
+                    <button onclick="processQuestion()" id="process-btn" class="tooltip">Start Reasoning
+                        <span class="tooltiptext">Normal reasoning by selected method and model</span>
+                    </button>
+                    <button onclick="longReasoning()" id="long-btn" class="tooltip">Long Reasoning
+                        <span class="tooltiptext">Only supported by deepseek-reasoner and qwq-plus models; Please insert Claude's API key for long reasoning visualization</span>
+                    </button>
                 </div>
             </div>
             <div class="links">
                 <a href="https://github.com/ZongqianLi/ReasonGraph"><u>Github</u> |&nbsp</a><a href="https://arxiv.org/abs/2503.03979"><u>Paper</u> |&nbsp</a><a href="mailto:zongqianli.work@outlook.com"><u>Email</u></a>
-            </div>
-            <div class="links">
-                <a href="./index.html"><u>English</u> |&nbsp</a><a href="./index_cn.html"><u>中文</u></a>
+                <span class="link-separator"> |&nbsp|&nbsp</span><a href="./index.html" class="tooltip tooltip-top lang-tooltip english-tooltip"><u>English</u> /&nbsp
+                    <span class="tooltiptext">Switch to English version; To get responses in other languages, ask in that language and say "please answer in this language"</span>
+                </a><a href="./index_cn.html" class="tooltip tooltip-top lang-tooltip chinese-tooltip"><u>中文</u>
+                    <span class="tooltiptext">切换到中文版；如果想使模型输出中文，只需用中文提问，同时输入"请使用中文回答"</span>
+                </a>
             </div>
         </div>
     </div>
@@ -422,7 +518,8 @@
                     <div class="zoom-level" id="zoom-level">100%</div>
                     <button class="zoom-button" onclick="adjustZoom(0.1)">+</button>
                     <button class="zoom-button" onclick="resetZoom()">Reset</button>
-                    <button class="zoom-button" onclick="downloadDiagram()">Download</button>
+                    <button class="zoom-button" onclick="downloadDiagram()">Download Flow Chart</button>
+                    <button class="zoom-button" onclick="downloadMermaidCode()">Download Code</button>
                 </div>
                 <div class="visualization-wrapper">
                     <div id="mermaid-container">
@@ -456,20 +553,42 @@
         // Initialize zoom lock flag
         window.isZoomLocked = false;
 
+        // Save raw output for long reasoning
+        let currentRawOutput = "";
+        
+        // Store user-entered API keys
+        let userApiKeys = {};
+
+        function updateButtonTextPreserveTooltip(button, text) {
+            for (let i = 0; i < button.childNodes.length; i++) {
+                if (button.childNodes[i].nodeType === Node.TEXT_NODE) {
+                    button.childNodes[i].nodeValue = text;
+                    return;
+                }
+            }
+            
+            button.prepend(document.createTextNode(text));
+        }
+
         // Handle API Provider change
         async function handleProviderChange(provider) {
             try {
                 // Update model list
                 updateModelList();
                 
-                // Get and update API key
-                const response = await fetch(`/provider-api-key/${provider}`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    document.getElementById('api-key').value = result.api_key;
+                // Check if we have a user-entered API key for this provider
+                if (userApiKeys[provider]) {
+                    document.getElementById('api-key').value = userApiKeys[provider];
                 } else {
-                    console.error('Failed to get API key:', result.error);
+                    // Get the default API key only if user hasn't entered one
+                    const response = await fetch(`/provider-api-key/${provider}`);
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        document.getElementById('api-key').value = result.api_key;
+                    } else {
+                        console.error('Failed to get API key:', result.error);
+                    }
                 }
             } catch (error) {
                 console.error('Error updating provider settings:', error);
@@ -513,6 +632,17 @@
                 const methodConfig = currentConfig.methods[defaultMethod];
                 updatePromptFormat(methodConfig.prompt_format);
                 updateExampleQuestion(methodConfig.example_question);
+                
+                // Add event listener for API key changes
+                document.getElementById('api-key').addEventListener('change', function() {
+                    const provider = document.getElementById('api-provider').value;
+                    const apiKey = this.value.trim();
+                    
+                    if (apiKey) {
+                        // Save in local memory
+                        userApiKeys[provider] = apiKey;
+                    }
+                });
             } catch (error) {
                 console.error('Failed to load configuration:', error);
                 showError('Failed to load configuration. Please refresh the page.');
@@ -648,6 +778,90 @@
             }
         }
 
+        // Function to download the Mermaid code
+        async function downloadMermaidCode() {
+            // Do nothing if zooming is locked
+            if (window.isZoomLocked) return;
+
+            try {
+                // First, check if we have stored code from the last visualization
+                let mermaidCode = lastMermaidCode;
+                
+                // If no stored code, try to extract it
+                if (!mermaidCode) {
+                    const diagramContainer = document.getElementById('mermaid-diagram');
+                    if (!diagramContainer) {
+                        alert('No diagram available to download code');
+                        return;
+                    }
+                    
+                    // Try to find the mermaid element with the code
+                    const mermaidElement = diagramContainer.querySelector('.mermaid');
+                    
+                    if (mermaidElement) {
+                        // Get the text content which contains the Mermaid code
+                        mermaidCode = mermaidElement.getAttribute('data-processed') === 'true' 
+                            ? mermaidElement.dataset.graph 
+                            : mermaidElement.textContent;
+                    }
+                    
+                    // Fallback: If we can't get the code directly, try to extract from raw output
+                    if (!mermaidCode && currentRawOutput) {
+                        mermaidCode = extractMermaidCode(currentRawOutput);
+                    }
+                    
+                    if (!mermaidCode) {
+                        // Another fallback: try to extract from svg data
+                        const svg = diagramContainer.querySelector('svg');
+                        if (svg) {
+                            const svgData = svg.outerHTML;
+                            // Look for mermaid data embedded in the SVG
+                            const match = svgData.match(/data-mermaid="(.*?)"/);
+                            if (match && match[1]) {
+                                mermaidCode = decodeURIComponent(match[1]);
+                            }
+                        }
+                    }
+                }
+                
+                if (!mermaidCode) {
+                    // If we still don't have the code, try to generate a basic flowchart from the SVG
+                    const diagramContainer = document.getElementById('mermaid-diagram');
+                    const svg = diagramContainer && diagramContainer.querySelector('svg');
+                    
+                    if (svg) {
+                        // Try to reconstruct Mermaid code from SVG elements
+                        mermaidCode = "flowchart TD\n";
+                        mermaidCode += "    A[\"This is an auto-generated approximation of the flowchart.\"]\n";
+                        mermaidCode += "    B[\"The original Mermaid code could not be extracted.\"]\n";
+                        mermaidCode += "    A --> B\n";
+                        mermaidCode += "    classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px;";
+                    } else {
+                        alert('Unable to extract or generate Mermaid code');
+                        return;
+                    }
+                }
+
+                // Create blob and download link
+                const blob = new Blob([mermaidCode], {type: 'text/plain'});
+                const url = URL.createObjectURL(blob);
+                
+                // Create temporary link and trigger download
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'reasoning_diagram_code.txt';
+                document.body.appendChild(link);
+                link.click();
+                
+                // Cleanup
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Error downloading Mermaid code:', error);
+                alert('Failed to download Mermaid code: ' + error.message);
+            }
+        }
+
         function validateInputs() {
             const apiKey = document.getElementById('api-key').value.trim();
             const question = document.getElementById('question').value.trim();
@@ -689,11 +903,13 @@
             resetZoom();
             const processButton = document.getElementById('process-btn');
             const metaButton = document.getElementById('meta-btn');
+            const longButton = document.getElementById('long-btn');
             const rawOutput = document.getElementById('raw-output');
             
             processButton.disabled = true;
             metaButton.disabled = true;
-            processButton.textContent = 'Processing...';
+            longButton.disabled = true;
+            updateButtonTextPreserveTooltip(processButton, 'Processing...');
             rawOutput.textContent = 'Loading...';
             rawOutput.style.color = '#1f2937';
             
@@ -727,7 +943,18 @@
                     rawOutput.textContent = result.raw_output;
                     rawOutput.style.color = '#1f2937';
                     
+                    // Save the raw output for potential long reasoning
+                    currentRawOutput = result.raw_output;
+                    
                     if (result.visualization) {
+                        // Store the raw visualization code before rendering
+                        if (result.visualization.includes('class="mermaid"')) {
+                            const codeMatch = result.visualization.match(/<div class="mermaid">([\s\S]*?)<\/div>/);
+                            if (codeMatch && codeMatch[1]) {
+                                lastMermaidCode = codeMatch[1].trim();
+                            }
+                        }
+                        
                         const container = document.getElementById('mermaid-diagram');
                         container.innerHTML = result.visualization;
                         document.getElementById('mermaid-container').classList.add('has-visualization');
@@ -745,12 +972,301 @@
                 
                 processButton.disabled = false;
                 metaButton.disabled = false;
-                processButton.textContent = 'Start Reasoning';
+                longButton.disabled = false;
+                updateButtonTextPreserveTooltip(processButton, 'Start Reasoning');
                 if (isMetaReasoning) {
-                    metaButton.textContent = 'Meta Reasoning';
+                    updateButtonTextPreserveTooltip(metaButton, 'Meta Reasoning');
                 }
             }
         }
+
+        // Long Reasoning function
+        async function longReasoning() {
+            if (!validateInputs()) {
+                return;
+            }
+
+            // Disable all buttons during processing
+            const processButton = document.getElementById('process-btn');
+            const metaButton = document.getElementById('meta-btn');
+            const longButton = document.getElementById('long-btn');
+            const rawOutput = document.getElementById('raw-output');
+    
+            processButton.disabled = true;
+            metaButton.disabled = true;
+            longButton.disabled = true;
+            updateButtonTextPreserveTooltip(longButton, 'Processing...');
+            rawOutput.textContent = 'Switching to Plain Text mode and generating initial response...';
+            rawOutput.style.color = '#1f2937';
+    
+            // Lock visualization
+            lockVisualization();
+    
+            try {
+                // 1. Switch to Plain Text reasoning method
+                const methodSelect = document.getElementById('reasoning-method');
+                const originalMethod = methodSelect.value; // Save original method
+                methodSelect.value = 'plain';
+        
+                // Get and update the prompt format for Plain Text
+                const methodResponse = await fetch('/method-config/plain');
+                const methodConfig = await methodResponse.json();
+                if (methodConfig) {
+                    updatePromptFormat(methodConfig.prompt_format);
+                }
+        
+                // 2. Process with Plain Text to get initial output
+                const data = {
+                    provider: document.getElementById('api-provider').value,
+                    api_key: document.getElementById('api-key').value,
+                    model: document.getElementById('model').value,
+                    max_tokens: parseInt(document.getElementById('max-tokens').value),
+                    question: document.getElementById('question').value,
+                    prompt_format: document.getElementById('prompt-format').value,
+                    reasoning_method: 'plain',
+                    chars_per_line: parseInt(document.getElementById('chars-per-line').value),
+                    max_lines: parseInt(document.getElementById('max-lines').value)
+                };
+        
+                rawOutput.textContent = 'Generating initial output...';
+        
+                // Call the process endpoint
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+        
+                const result = await response.json();
+        
+                if (result.success) {
+                    // Save the raw output for long reasoning
+                    currentRawOutput = result.raw_output;
+            
+                    // Display the plain text output in the Raw Output area
+                    rawOutput.textContent = result.raw_output;
+                    rawOutput.style.color = '#1f2937';
+            
+                    // Reset Zoom and visualization at the beginning - force zoom to 100%
+                    currentZoom = 1; // Force zoom level to 100%
+                    applyZoom(); // Apply the zoom reset
+                    const container = document.getElementById('mermaid-diagram');
+                    container.innerHTML = '';
+                    document.getElementById('zoom-level').textContent = '100%';
+            
+                    // 3. Now proceed with the long reasoning process using Anthropic
+                    const question = document.getElementById('question').value;
+            
+                    // Prepare the long reasoning prompt
+                    const longReasoningPrompt = `Please transform the following original reasoning process into a structured flowchart:
+
+'''
+${question}
+${currentRawOutput}
+'''
+
+Requirements:
+0. Create a visually balanced and aesthetically pleasing diagram
+
+1. Structure each node as: [Step Name]: [Concise Summary of Reasoning]
+   - Keep node text simple and enclose in double quotes inside brackets like: A["Step Name: Reasoning"]
+   - Example: A["Problem Framing: Define the question"]
+
+2. Support multiple reasoning structures: 
+   - Linear reasoning: Sequential steps leading directly to a conclusion
+   - Tree reasoning: Branching paths exploring multiple possibilities
+   - Reflective reasoning: Loops that revisit and refine earlier conclusions
+   - Not limited to the structures above
+
+3. Flowchart syntax guidance: 
+   - Start with: flowchart TD
+   - Node definition: letter["text content"]
+   - Connection definition: A --> B
+   - Conditional branch: A -->|condition| B
+
+4. When analyzing the reasoning: 
+   - Preserve the logical structure of the original reasoning
+   - Identify implicit steps that connect explicit reasoning
+   - Highlight areas where reflection led to revised conclusions
+   - Maintain proper causal relationships between nodes
+   - When showing alternative methods or different solution attempts, use a tree-like structure with branches to clearly visualize parallel thinking paths
+
+5. Include these specific style classes in your Mermaid flowchart:
+   - classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px;
+   - classDef question fill:#e3f2fd,stroke:#1976d2,stroke-width:2px;
+   - classDef answer fill:#d4edda,stroke:#28a745,stroke-width:2px;
+   - classDef refinement fill:#fff3cd,stroke:#ffc107,stroke-width:2px;
+   - classDef aha fill:#ffcccb,stroke:#d9534f,stroke-width:2px;
+   
+6. Apply styling to specific node types:
+   - The first node (starting point) should use class "question"
+   - The final conclusion/answer node and any significant intermediate results should use class "answer"
+   - Any sub-questions or question refinements should also use class "question"
+   - Nodes that involve refinement, reflection, revision, or error correction should use class "refinement". Ensure each refinement node has both incoming arrows from preceding steps and outgoing arrows to subsequent steps, maintaining the full flow of the reasoning process while also creating proper feedback loops.
+   - Nodes that represent key insights, breakthrough moments, or "aha moments" should use class "aha"
+
+7. Important:
+   - When applying class styles to nodes, do NOT use the ":::" syntax. Instead, define classes separately with classDef statements and then apply them using "class NodeName ClassName" syntax. For example, use "class A question" rather than "A:::question".
+   - Ensure all nodes are connected in a single unified flowchart. There should be no disconnected components or floating nodes. Every node must have at least one connection to another node in the diagram.
+   - Use special node styles (refinement and aha) sparingly and only when truly justified by the content. A node should only be classified as "refinement" if it explicitly revises a previous conclusion, and as "aha" only for genuine breakthrough moments that fundamentally change the direction of reasoning.
+   - Try to capture all significant steps from the original text. Do not oversimplify or omit important reasoning steps even if the input is lengthy.
+   - Do not use Python-style comments in the Mermaid code.
+
+Please visualize the thinking steps from the original reasoning process as a proper Mermaid flowchart.`;
+
+                    // Use Anthropic for the flowchart generation
+                    // Get the appropriate API key for Anthropic
+                    let anthropicApiKey = userApiKeys["anthropic"];
+                    if (!anthropicApiKey) {
+                        // If no user-entered key exists for Anthropic, try to get the default
+                        try {
+                            const keyResponse = await fetch('/provider-api-key/anthropic');
+                            const keyResult = await keyResponse.json();
+                            if (keyResult.success) {
+                                anthropicApiKey = keyResult.api_key;
+                            } else {
+                                throw new Error('No API key available for Anthropic');
+                            }
+                        } catch (error) {
+                            console.error('Error fetching Anthropic API key:', error);
+                            alert('Unable to get Anthropic API key for flowchart generation');
+                            return;
+                        }
+                    }
+                    
+                    const longData = {
+                        provider: "anthropic",
+                        api_key: anthropicApiKey,
+                        model: "claude-3-7-sonnet-20250219", // Use Claude for visualization
+                        max_tokens: parseInt(document.getElementById('max-tokens').value),
+                        question: longReasoningPrompt,
+                        prompt_format: "",
+                        reasoning_method: "cot",
+                        chars_per_line: parseInt(document.getElementById('chars-per-line').value),
+                        max_lines: parseInt(document.getElementById('max-lines').value)
+                    };
+            
+                    // Keep showing the plain text result while generating the flowchart
+                    // Don't update rawOutput.textContent here
+            
+                    const longResponse = await fetch('/process', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(longData)
+                    });
+            
+                    const longResult = await longResponse.json();
+            
+                    if (longResult.success) {
+                        // Keep displaying the original plain text output
+                        // We don't overwrite rawOutput.textContent here to preserve the plain text output
+                
+                        // Extract Mermaid diagram code from the response
+                        const mermaidCode = extractMermaidCode(longResult.raw_output);
+                
+                        if (mermaidCode) {
+                            // Store the code before rendering
+                            lastMermaidCode = mermaidCode;
+                            
+                            // Render the Mermaid diagram
+                            const container = document.getElementById('mermaid-diagram');
+                            container.innerHTML = '<div class="mermaid">' + mermaidCode + '</div>';
+                    
+                            // Initialize Mermaid
+                            mermaid.initialize({ 
+                                startOnLoad: true,
+                                theme: 'default',
+                                securityLevel: 'loose',
+                                flowchart: {
+                                    curve: 'basis',
+                                    padding: 15
+                                }
+                            });
+                    
+                            // Force rendering
+                            mermaid.init(undefined, '.mermaid');
+                    
+                            // Add visualization class
+                            document.getElementById('mermaid-container').classList.add('has-visualization');
+                    
+                            // Reset zoom
+                            resetZoom();
+                        } else if (longResult.visualization) {
+                            // Fall back to any visualization
+                            const container = document.getElementById('mermaid-diagram');
+                            container.innerHTML = longResult.visualization;
+                            document.getElementById('mermaid-container').classList.add('has-visualization');
+                            resetZoom();
+                            mermaid.init();
+                        }
+                    } else {
+                        // If visualization fails, show error without overwriting raw output
+                        const errorMsg = longResult.error || 'Unknown error during flowchart generation';
+                        console.error(errorMsg);
+                        alert('Visualization error: ' + errorMsg);
+                    }
+                } else {
+                    // Use standard error function since we don't have valid output to preserve
+                    showError(result.error || 'Unknown error during initial processing');
+                }
+        
+                // Don't restore the original method - keep it on Plain Text
+                // This way the user stays in Plain Text mode after the operation
+        
+                // Optional: Update the prompt format for Plain Text if needed
+                const plainTextResponse = await fetch('/method-config/plain');
+                const plainTextConfig = await plainTextResponse.json();
+                if (plainTextConfig) {
+                    updatePromptFormat(plainTextConfig.prompt_format);
+                }
+        
+            } catch (error) {
+                console.error('Long reasoning error:', error);
+                // Only use showError if we don't already have plain text output to preserve
+                if (!currentRawOutput) {
+                    showError('Failed to process long reasoning request: ' + error.message);
+                } else {
+                    alert('Error in visualization: ' + error.message);
+                }
+            } finally {
+                // Unlock visualization
+                unlockVisualization();
+        
+                // Re-enable all buttons
+                processButton.disabled = false;
+                metaButton.disabled = false;
+                longButton.disabled = false;
+                updateButtonTextPreserveTooltip(longButton, 'Long Reasoning');
+            }
+        }
+
+        // Helper function to extract Mermaid code from response
+        function extractMermaidCode(text) {
+            // Look for code blocks with Mermaid content
+            const mermaidRegex = /```(?:mermaid)?\s*(flowchart[\s\S]*?)```/i;
+            const match = text.match(mermaidRegex);
+            
+            if (match && match[1]) {
+                return match[1].trim();
+            }
+            
+            // If no code block, look for just the flowchart content
+            const flowchartRegex = /(flowchart[\s\S]*?)(?:\n\n|$)/i;
+            const flowchartMatch = text.match(flowchartRegex);
+            
+            if (flowchartMatch && flowchartMatch[1]) {
+                return flowchartMatch[1].trim();
+            }
+            
+            return null;
+        }
+        
+        // Global variable to store the last mermaid visualization code
+        let lastMermaidCode = "";
 
         // Meta Reasoning function
         async function metaReasoning() {
@@ -759,7 +1275,7 @@
             
             try {
                 metaButton.disabled = true;
-                metaButton.textContent = 'Selecting Method...';
+                updateButtonTextPreserveTooltip(metaButton, 'Selecting Method...');
                 rawOutput.textContent = 'Analyzing question to select best method...';
                 
                 // Get current parameters
@@ -802,22 +1318,34 @@
                         console.log(`Selected reasoning method: ${methodConfig.name}`);
                         
                         // Update button to show method was selected
-                        metaButton.textContent = 'Method Selected';
-                        // Process the question with the selected method
-                        await processQuestion(true);
+                        updateButtonTextPreserveTooltip(metaButton, 'Method Selected');
+                        
+                        try {
+                            // Process the question with the selected method
+                            await processQuestion(true);
+                        } catch (processError) {
+                            console.error('Error processing with selected method:', processError);
+                            showError('Failed to process with selected method: ' + processError.message);
+                            
+                            // Make sure to re-enable the button on error
+                            metaButton.disabled = false;
+                            updateButtonTextPreserveTooltip(metaButton, 'Meta Reasoning');
+                        }
                     } else {
                         showError('Failed to load method configuration');
-                        metaButton.textContent = 'Meta Reasoning';
+                        metaButton.disabled = false;
+                        updateButtonTextPreserveTooltip(metaButton, 'Meta Reasoning');
                     }
                 } else {
                     showError(result.error || 'Failed to select method');
-                    metaButton.textContent = 'Meta Reasoning';
+                    metaButton.disabled = false;
+                    updateButtonTextPreserveTooltip(metaButton, 'Meta Reasoning');
                 }
             } catch (error) {
                 console.error('Meta reasoning error:', error);
                 showError('Failed to execute meta reasoning');
                 metaButton.disabled = false;
-                metaButton.textContent = 'Meta Reasoning';
+                updateButtonTextPreserveTooltip(metaButton, 'Meta Reasoning');
             }
         }
 
@@ -838,6 +1366,87 @@
 
         // Load configuration when page loads
         document.addEventListener('DOMContentLoaded', loadConfig);
+        
+        /**
+         * Process Mermaid node text with character and line limits
+         * @param {string} mermaidCode - Original Mermaid code
+         * @param {number} maxCharsPerLine - Maximum characters per line
+         * @param {number} maxLines - Maximum number of lines per node
+         * @param {string} truncationSuffix - Suffix for truncated text
+         * @returns {string} Processed Mermaid code
+         */
+        function processMermaidNodeText(mermaidCode, maxCharsPerLine, maxLines, truncationSuffix = "...") {
+            // Node definition regex: matches patterns like A["text content"] with capture groups
+            const nodeRegex = /([A-Za-z0-9_]+)\s*\[\s*"([^"]+)"\s*\]/g;
+            
+            // Process each node's text content
+            return mermaidCode.replace(nodeRegex, (match, nodeId, text) => {
+                // Clean text by replacing existing <br> tags and newlines with spaces
+                const cleanText = text.replace(/<br>/g, ' ').replace(/\n/g, ' ');
+                
+                // Text wrapping function similar to Python's textwrap.wrap
+                function wrapText(text, width) {
+                    const words = text.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    
+                    for (const word of words) {
+                        if (currentLine.length + word.length + (currentLine ? 1 : 0) <= width) {
+                            currentLine += (currentLine ? ' ' : '') + word;
+                        } else {
+                            lines.push(currentLine);
+                            currentLine = word;
+                        }
+                    }
+                    
+                    if (currentLine) {
+                        lines.push(currentLine);
+                    }
+                    
+                    return lines;
+                }
+                
+                // Wrap text according to max chars per line
+                let wrappedLines = wrapText(cleanText, maxCharsPerLine);
+                
+                // Limit number of lines and add truncation indicator if needed
+                if (wrappedLines.length > maxLines) {
+                    wrappedLines = wrappedLines.slice(0, maxLines);
+                    const lastLine = wrappedLines[wrappedLines.length - 1];
+                    if (lastLine.length > maxCharsPerLine - truncationSuffix.length) {
+                        wrappedLines[wrappedLines.length - 1] = 
+                            lastLine.substring(0, maxCharsPerLine - truncationSuffix.length) + truncationSuffix;
+                    } else {
+                        wrappedLines[wrappedLines.length - 1] = lastLine + truncationSuffix;
+                    }
+                }
+                
+                // Join lines with <br> for Mermaid formatting
+                const processedText = wrappedLines.join('<br>');
+                
+                // Return the node with processed text
+                return `${nodeId}["${processedText}"]`;
+            });
+        }
+
+        // Override extractMermaidCode to apply text processing for Long Reasoning
+        const originalExtractMermaidCode = extractMermaidCode;
+        
+        extractMermaidCode = function(text) {
+            // Call the original function to extract the code
+            const mermaidCode = originalExtractMermaidCode(text);
+            
+            if (mermaidCode) {
+                // Get character and line limits from UI
+                const maxCharsPerLine = parseInt(document.getElementById('chars-per-line').value) || 40;
+                const maxLines = parseInt(document.getElementById('max-lines').value) || 4;
+                
+                // Apply text processing to enforce character and line limits
+                return processMermaidNodeText(mermaidCode, maxCharsPerLine, maxLines);
+            }
+            
+            return mermaidCode;
+        };
     </script>
 </body>
 </html>

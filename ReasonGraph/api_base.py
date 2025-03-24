@@ -1,3 +1,9 @@
+"""
+Base API module for handling different API providers.
+This module provides a unified interface for interacting with various API providers
+like Anthropic, OpenAI, Google Gemini and Together AI.
+"""
+
 from abc import ABC, abstractmethod
 import logging
 import requests
@@ -246,7 +252,15 @@ class DeepSeekAPI(BaseAPI):
                 max_tokens=max_tokens
             )
             
-            return response.choices[0].message.content
+            # Check if this is the reasoning model response
+            if self.model == "deepseek-reasoner" and hasattr(response.choices[0].message, "reasoning_content"):
+                # Include both reasoning and answer
+                reasoning = response.choices[0].message.reasoning_content
+                answer = response.choices[0].message.content
+                return f"Reasoning:\n{reasoning}\n\nAnswer:\n{answer}"
+            else:
+                # Regular model response
+                return response.choices[0].message.content
             
         except Exception as e:
             self._handle_error(e, "request or response processing")
@@ -272,15 +286,49 @@ class QwenAPI(BaseAPI):
             formatted_prompt = self._format_prompt(prompt, prompt_format)
             
             logger.info(f"Sending request to Qwen API with model {self.model}")
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "user", "content": formatted_prompt}
-                ],
-                max_tokens=max_tokens
-            )
             
-            return response.choices[0].message.content
+            # Check if this is the reasoning model (qwq-plus)
+            if self.model == "qwq-plus":
+                # For qwq-plus model, we need to use streaming
+                reasoning_content = ""
+                answer_content = ""
+                is_answering = False
+                
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "user", "content": formatted_prompt}
+                    ],
+                    max_tokens=max_tokens,
+                    stream=True  # qwq-plus only supports streaming output
+                )
+                
+                for chunk in response:
+                    if not chunk.choices:
+                        continue
+                    
+                    delta = chunk.choices[0].delta
+                    # Collect reasoning process
+                    if hasattr(delta, 'reasoning_content') and delta.reasoning_content is not None:
+                        reasoning_content += delta.reasoning_content
+                    # Collect answer content
+                    elif hasattr(delta, 'content') and delta.content is not None:
+                        answer_content += delta.content
+                        is_answering = True
+                
+                # Return combined reasoning and answer
+                return f"Reasoning:\n{reasoning_content}\n\nAnswer:\n{answer_content}"
+            else:
+                # Regular model response (non-streaming)
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "user", "content": formatted_prompt}
+                    ],
+                    max_tokens=max_tokens
+                )
+                
+                return response.choices[0].message.content
             
         except Exception as e:
             self._handle_error(e, "request or response processing")

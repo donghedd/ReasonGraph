@@ -61,8 +61,8 @@ def wrap_text(text: str, max_chars: int = 40, max_lines: int = 4) -> str:
     wrapped_lines = textwrap.wrap(text, width=max_chars)
     
     if len(wrapped_lines) > max_lines:
-        wrapped_lines = wrapped_lines[:max_lines-1]
-        wrapped_lines.append(wrapped_lines[-1][:max_chars-3] + "...")
+        wrapped_lines = wrapped_lines[:max_lines]
+        wrapped_lines[-1] = wrapped_lines[-1][:max_chars-3] + "..."
     
     return "<br>".join(wrapped_lines)
 
