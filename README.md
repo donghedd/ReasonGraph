@@ -47,7 +47,7 @@
 
 ## 🚀 News
 
-- **[2025.03.24]** Support visualisation of **long outputs** from **reasoning models**.
+- **[2025.03.24]** ⭐ Support visualisation of **long outputs** from **reasoning models**!!!
 - **[2025.03.18]** Support more LLM providers and models. Support two languages, English and Chinese.
 - **[2025.03.18]** Rate and provide comments in the [questionnaire](https://forms.office.com/r/ebBSAKqHwj) (takes about 30 seconds).
 - **[2025.03.17]** Try the [online demo](https://huggingface.co/spaces/ZongqianLi/ReasonGraph) through Huggingface Page!
