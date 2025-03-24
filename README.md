@@ -1,4 +1,4 @@
-# ReasonGraph: Visualisation of Reasoning Paths
+# ReasonGraph: Visualisation of Reasoning Methods and Extended Inference Paths
 
 <p align="center">
   <b>Language</b>
@@ -47,13 +47,12 @@
 
 ## 🚀 News
 
-- **[2025.03.18]** Support two languages, English and Chinese.
-- **[2025.03.18]** Support more LLM providers and models.
+- **[2025.03.24]** Support visualisation of **long outputs** from **reasoning models**.
+- **[2025.03.18]** Support more LLM providers and models. Support two languages, English and Chinese.
 - **[2025.03.18]** Rate and provide comments in the [questionnaire](https://forms.office.com/r/ebBSAKqHwj) (takes about 30 seconds).
 - **[2025.03.17]** Try the [online demo](https://huggingface.co/spaces/ZongqianLi/ReasonGraph) through Huggingface Page!
 - **[2025.03.14]** Join our [Discord](https://discord.gg/tA9DV7Fjzz) group!
 - **[2025.03.07]** The [paper](https://arxiv.org/abs/2503.03979) is available in Arxiv.
-- **[2025.03.07]** A new version has been uploaded.
 - **[2025.02.22]** Create the Github page.
 
 <div>&nbsp;</div>
@@ -76,11 +75,19 @@
 
 **ReasonGraph** is an open-source web platform for visualizing and analyzing reasoning processes of Large Language Models (LLMs).
 
+**Functions:**
+
+- **Visualisation of Reasoning Paths:** Transforms text-format reasoning outputs into flow charts.
+- **Long Reasoning:** Supports visualisation of extended outputs from reasoning models.
+- **Meta Reasoning:** Provides built-in capabilities for models to self-select optimal reasoning methods.
+
+**Characteristics:**
+
 - **Model Support:** Integrates with over 50 state-of-the-art models from major LLM providers including Anthropic, OpenAI, Google, Grok, Deepseek, Qwen, and Together.AI.
 - **Reasoning Methods:** Implements mainstream reasoning approaches including sequential methods and tree-based methods.
 - **Modular Framework:** Standardized APIs for easy integration of new reasoning methods and models.
 - **Beginner-Friendly:** Intuitive UI design with visualization updates and simple configuration.
-- **Meta Reasoning:** Built-in ability that allows models to self-select the most appropriate reasoning method.
+- **Multilingual:** Support multi-languages and easy to be extended for more languages.
 
 <div>&nbsp;</div>
 <div>&nbsp;</div>
@@ -102,6 +109,18 @@
 
 <p align="left">
   <img src="./figures/UI.png" width="80%">
+</p>
+
+</details>
+
+<details open>
+<summary><strong>Visualisation of outputs from reasoning models:</strong></summary>
+
+Input: Give me two suggestions for transitioning from a journalist to a book editor? Use sequential and tree-based thinking and refinement loops.  
+Model: deepseek-reasoner from DeepSeek
+
+<p align="left">
+  <img src="./figures/long.png" width="100%">
 </p>
 
 </details>
@@ -132,8 +151,6 @@ Plain text (top), Beam Search (middle), Tree of Thoughts (bottom):
 
 </details>
 
-
-
 <div>&nbsp;</div>
 <div>&nbsp;</div>
 <div id="quick use">&nbsp;</div>
@@ -146,6 +163,22 @@ Plain text (top), Beam Search (middle), Tree of Thoughts (bottom):
 <summary><strong>Try the online demo:</strong></summary>
 
 #### 1. Go to the website: https://huggingface.co/spaces/ZongqianLi/ReasonGraph
+
+</details>
+
+<div>&nbsp;</div>
+
+<details>
+<summary><strong>Visualize long outputs from reasoning models:</strong></summary>
+
+#### 1. Select a reasoning model and enter its API key.
+
+- API Provider: Deepseek; Model: deepseek-reasoner
+- API Provider: Qwen; Model: qwq-plus
+
+#### 2. Enter the API key for Claude.
+
+#### 3. Click "Long Reasoning".
 
 </details>
 
