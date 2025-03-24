@@ -1,4 +1,4 @@
-# ReasonGraph: Visualisation of Reasoning Paths
+# ReasonGraph: Visualisation of Reasoning Methods and Extended Inference Paths
 
 <p align="center">
   <b>语言</b>
@@ -47,13 +47,12 @@
 
 ## 🚀 新闻
 
-- **[2025.03.18]** 支持两种语言，英语和中文。
-- **[2025.03.18]** 支持更多LLM供应商和模型。
+- **[2025.03.24]** 支持推理模型长输出的可视化。
+- **[2025.03.18]** 支持更多LLM供应商和模型。支持两种语言，英语和中文。
 - **[2025.03.18]** 在[调查问卷](https://forms.office.com/r/ebBSAKqHwj)中打分和提供反馈（约需30秒）。
 - **[2025.03.17]** 通过Huggingface页面尝试[在线实例](https://huggingface.co/spaces/ZongqianLi/ReasonGraph)！
 - **[2025.03.14]** 加入我们的[Discord](https://discord.gg/tA9DV7Fjzz)群组交流！
 - **[2025.03.07]** [论文](https://arxiv.org/abs/2503.03979)已上传至Arxiv。
-- **[2025.03.07]** 上传了一个新版本。
 - **[2025.02.22]** 创建了Github页面。
 
 <div>&nbsp;</div>
@@ -76,11 +75,19 @@
 
 **ReasonGraph**是一个开源网页平台，用于可视化和分析LLM的推理过程。
 
+**功能:**
+
+- **推理路径可视化:** 将文本格式的推理输出转化为流程图。
+- **长篇推理:** 支持可视化推理模型的长输出。
+- **元推理:** 内置功能，允许模型自行选择最合适的推理方法。
+
+**特点:**
+
 - **模型支持:** 集成了来自Anthropic、OpenAI、Google、Grok、Deepseek、Qwen和Together.AI等主要LLM提供商的50多种先进模型。
 - **推理方法:** 实现了主流推理方法，包括顺序方法和基于树的方法。
 - **模块化框架:** 标准化API，便于集成新的推理方法和模型。
 - **适合初学者:** 直观的页面设计，具有可视化更新和简单配置。
-- **元推理:** 内置功能，允许模型自行选择最合适的推理方法。
+- **多语言:** 支持多种语言，并易于扩展以支持更多语言。
 
 <div>&nbsp;</div>
 <div>&nbsp;</div>
@@ -102,6 +109,20 @@
 
 <p align="left">
   <img src="./figures/UI.png" width="80%">
+</p>
+
+</details>
+
+<div>&nbsp;</div>
+
+<details open>
+<summary><strong>推理模型长输出的可视化:</strong></summary>
+
+输入: Give me two suggestions for transitioning from a journalist to a book editor? Use sequential and tree-based thinking and refinement loops.  
+模型: DeepSeek的deepseek-reasoner
+
+<p align="left">
+  <img src="./figures/long.png" width="100%">
 </p>
 
 </details>
@@ -132,8 +153,6 @@
 
 </details>
 
-
-
 <div>&nbsp;</div>
 <div>&nbsp;</div>
 <div id="quick use">&nbsp;</div>
@@ -146,6 +165,22 @@
 <summary><strong>尝试在线实例：</strong></summary>
 
 #### 1. 前往网页：https://huggingface.co/spaces/ZongqianLi/ReasonGraph
+
+</details>
+
+<div>&nbsp;</div>
+
+<details>
+<summary><strong>推理模型长输出的可视化:</strong></summary>
+
+#### 1. 选择一个推理模型并输入其API Key。
+
+- API提供商：Deepseek；模型：deepseek-reasoner
+- API提供商：Qwen；模型：qwq-plus
+
+#### 2. 输入Claude的API Key。
+
+#### 3. 点击“长推理”。
 
 </details>
 
