@@ -1,4 +1,4 @@
-# LongReasonGraph: Visualisation of Reasoning Methods and Extended Inference Paths
+# ReasonGraph: Visualisation of Reasoning Methods and Extended Inference Paths
 
 <p align="center">
   <b>Language</b>
