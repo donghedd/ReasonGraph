@@ -120,7 +120,7 @@ Input: Give me two suggestions for transitioning from a journalist to a book edi
 Model: deepseek-reasoner from DeepSeek
 
 <p align="left">
-  <img src="./figures/long.png" width="100%">
+  <img src="./figures/long_example.png" width="100%">
 </p>
 
 </details>
