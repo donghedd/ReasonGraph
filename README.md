@@ -108,7 +108,7 @@
 <summary><strong>UI Screenshot:</strong></summary>
 
 <p align="left">
-  <img src="./figures/UI.png" width="80%">
+  <img src="./figures/.png" width="80%">
 </p>
 
 </details>
