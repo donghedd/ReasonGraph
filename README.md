@@ -63,8 +63,6 @@
 
 ## ✏️ Todo & Help Wanted
 
-- [ ] Upload the demo vedio.
-
 <div>&nbsp;</div>
 <div>&nbsp;</div>
 <div id="introduction">&nbsp;</div>
@@ -96,15 +94,6 @@
 
 
 ## 👀 Examples
-
-<details>
-<summary><strong>Demo vedio:</strong></summary>
-
-https://drive.google.com/file/d/1wKJZ6fL4yHo9CzX3bNNoQWKM73MoaDAb/view?usp=sharing
-
-</details>
-
-<div>&nbsp;</div>
 
 <details open>
 <summary><strong>UI Screenshot:</strong></summary>
