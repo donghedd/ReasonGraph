@@ -140,7 +140,7 @@ def create_mermaid_diagram(cot_response: CoTResponse, config: VisualizationConfi
     Returns:
         Mermaid diagram markup as a string
     """
-    diagram = ['<div class="mermaid">', 'graph TD']
+    diagram = ['graph TD']
     
     # Add question node
     question_content = wrap_text(cot_response.question, config)
@@ -181,5 +181,4 @@ def create_mermaid_diagram(cot_response: CoTResponse, config: VisualizationConfi
         '    linkStyle default stroke:#666,stroke-width:2px;'
     ])
     
-    diagram.append('</div>')
     return '\n'.join(diagram)

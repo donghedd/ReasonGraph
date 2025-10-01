@@ -14,17 +14,18 @@
         }
 
         .banner {
-            margin: 3px 20px;
-            border-radius: 8px;
+            margin: 3px 30px;
+            border-radius: 16px;
             background-image: url("{{ url_for('static', filename='assets/banner-bg.jpg') }}");
             background-size: cover;
             background-position: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            height: 320px;
+            box-shadow: 0 28px 60px -32px rgba(17, 24, 39, 0.65);
+            height: 440px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
+            padding: 0 48px;
         }
 
         .banner::before {
@@ -44,46 +45,54 @@
             text-align: center;
             color: white;
             width: 100%;
-            max-width: 800px;
-            padding: 0 20px;
+            max-width: 980px;
+            padding: 12px 32px 36px;
         }
 
         .banner-content h1 {
-            font-size: 2.8em;
-            margin: 100px 0 20px 0;
+            font-size: 3.2em;
+            margin: 110px 0 24px 0;
             font-weight: 300;
-            letter-spacing: 2px;
+            letter-spacing: 2.5px;
         }
 
         .search-area {
-            margin-top: 30px;
+            margin-top: 36px;
         }
 
         .search-input-container {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .search-input {
             width: 100%;
-            padding: 15px 20px;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            resize: vertical;
-            min-height: 20px;
-            max-height: 120px;
+            padding: 18px 22px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.65);
+            font-size: 17px;
+            line-height: 1.6;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 18px 40px -24px rgba(17, 24, 39, 0.6);
+            resize: none;
+            max-height: 260px;
+            min-height: 80px;
             box-sizing: border-box;
-            transition: all 0.3s ease;
+            color: #1f2937;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, transform 0.2s ease;
+            overflow-y: auto;
         }
 
         .search-input:focus {
             outline: none;
             background: rgba(255, 255, 255, 1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            border-color: rgba(102, 126, 234, 0.8);
+            box-shadow: 0 22px 50px -20px rgba(102, 126, 234, 0.55);
+        }
+
+        .search-input::placeholder {
+            color: rgba(55, 65, 81, 0.55);
         }
 
         .search-buttons {
@@ -92,9 +101,14 @@
             justify-content: center;
             flex-wrap: wrap;
             align-items: center;
+            margin-top: 18px;
         }
 
-        .search-buttons select,
+        .search-buttons.buttons-wrap {
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
         .search-buttons button {
             padding: 12px 24px;
             border: 2px solid rgba(255, 255, 255, 0.8);
@@ -108,7 +122,6 @@
             backdrop-filter: blur(10px);
         }
 
-        .search-buttons select:hover,
         .search-buttons button:hover {
             background: rgba(255, 255, 255, 0.2);
             border-color: rgba(255, 255, 255, 1);
@@ -135,6 +148,36 @@
         .links {
             margin-top: 20px;
             font-size: 14px;
+        }
+
+        .search-buttons select {
+            position: relative;
+            padding: 10px 40px 10px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            background: rgba(255, 255, 255, 0.95);
+            color: #1f2937;
+            font-weight: 500;
+            cursor: pointer;
+            appearance: none;
+            box-shadow: 0 16px 32px -24px rgba(17, 24, 39, 0.45);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-buttons select:hover {
+            border-color: rgba(102, 126, 234, 0.75);
+            box-shadow: 0 20px 40px -22px rgba(102, 126, 234, 0.55);
+        }
+
+        .search-buttons select:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.85);
+            box-shadow: 0 22px 48px -20px rgba(102, 126, 234, 0.6);
+        }
+
+        .search-buttons select option {
+            color: #1f2937;
+            background: #ffffff;
         }
 
         .links a {
@@ -1436,8 +1479,31 @@
             }
         });
 
+        // Auto-resize question input
+        function autoResizeQuestion() {
+            const textarea = document.getElementById('question');
+            const buttons = document.querySelector('.search-buttons');
+            if (!textarea) return;
+
+            const adjustHeight = () => {
+                textarea.style.height = 'auto';
+                const newHeight = Math.min(Math.max(textarea.scrollHeight, 80), 260);
+                textarea.style.height = newHeight + 'px';
+
+                const willWrapButtons = newHeight > 160;
+                if (buttons) {
+                    buttons.classList.toggle('buttons-wrap', willWrapButtons);
+                }
+            };
+
+            textarea.addEventListener('input', adjustHeight);
+            adjustHeight();
+        }
+
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            autoResizeQuestion();
+
             initializeConfig();
             loadHistory(1);
             updateZoomDisplay();

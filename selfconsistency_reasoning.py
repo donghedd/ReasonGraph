@@ -85,7 +85,7 @@ def create_mermaid_diagram(scr_response: SCRResponse, config: VisualizationConfi
     Returns:
         Mermaid diagram markup as a string
     """
-    diagram = ['<div class="mermaid">', 'graph TD']
+    diagram = ['graph TD']
     
     # Add question node
     question_content = wrap_text(scr_response.question, config)
@@ -150,5 +150,4 @@ def create_mermaid_diagram(scr_response: SCRResponse, config: VisualizationConfi
         if path.answer:
             diagram.append(f'    class A{path.path_id} answer;')
     
-    diagram.append('</div>')
     return '\n'.join(diagram)

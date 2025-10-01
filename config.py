@@ -41,15 +41,18 @@ class GeneralConfig:
         ],
         # OpenAI
         "openai": [
-            "gpt-5",
-            "chatgpt-5",
+            "gpt-5-codex-low",
+            "gpt-5-codex-medium",
+            "gpt-5-codex-high",
+            "gpt-5-minimal",
+            "gpt-5-low",
+            "gpt-5-medium",
+            "gpt-5-high",
             "gpt-4.1",
             "gpt-4.1-mini",
             "gpt-4o",
             "gpt-4o-mini",
-            "chatgpt-4o-latest",
-            "gpt-4-turbo",
-            "gpt-3.5-turbo"
+            "chatgpt-4o-latest"
         ],
         # Google Gemini
         "google": [
@@ -72,6 +75,13 @@ class GeneralConfig:
             "mistralai/Mixtral-8x22B-Instruct-v0.1",
             "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF",
             "deepseek-ai/DeepSeek-V3"
+        ],
+        # Packycode Codex (OpenAI compatible wire API)
+        "packycode": [
+            "gpt-5-codex",
+            "gpt-5-codex-low",
+            "gpt-5-codex-medium",
+            "gpt-5-codex-high"
         ],
         # DeepSeek
         "deepseek": [
@@ -104,6 +114,7 @@ class GeneralConfig:
         "openai": "OpenAI",
         "google": "Google Gemini",
         "together": "Together AI",
+        "packycode": "Packycode Codex",
         "deepseek": "DeepSeek",
         "qwen": "Qwen",
         "grok": "Grok"

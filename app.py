@@ -10,6 +10,8 @@ import json
 from database_config import DatabaseConfig
 from models import db, User, Conversation, ConversationTag, UserSession, create_indexes
 import config
+from api_base import APIError
+from reasoning_service import ReasoningService
 
 # 加载环境变量
 load_dotenv()
@@ -29,6 +31,11 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this'
 db.init_app(app)
 migrate = Migrate(app, db)
 
+# Reasoning service and config shortcuts
+reasoning_service = ReasoningService()
+reasoning_config = config.config
+general_config = reasoning_config.general
+
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -37,7 +44,10 @@ login_manager.login_message = '请先登录后再使用推理功能'
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return db.session.get(User, int(user_id))
+    except (TypeError, ValueError):
+        return None
 
 # Utility functions
 def get_client_info():
@@ -52,6 +62,48 @@ def update_user_stats(user, tokens_used=0):
     user.total_conversations += 1
     user.total_tokens_used += tokens_used
     db.session.commit()
+
+
+def extract_answer_from_result(result):
+    """推断模型回答内容，优先选择结构化结果中的最终答案。"""
+    parsed = getattr(result, 'parsed', None)
+
+    if parsed is None:
+        return result.raw_output
+
+    # Self-refine prefers revised answer when可用
+    if hasattr(parsed, 'revised_answer') and parsed.revised_answer:
+        return parsed.revised_answer
+
+    for attr in ('final_answer', 'answer'):
+        if hasattr(parsed, attr):
+            value = getattr(parsed, attr)
+            if value:
+                return value
+
+    # Self-consistency stores答案在 final_answer, already handled.
+    # For parsed字符串，直接返回
+    if isinstance(parsed, str) and parsed.strip():
+        return parsed
+
+    # Attempt to derive from attributes commonly used in路径集合
+    if hasattr(parsed, 'paths') and getattr(parsed, 'paths'):
+        first_path = parsed.paths[0]
+        if hasattr(first_path, 'answer') and first_path.answer:
+            return first_path.answer
+
+    return result.raw_output
+
+
+METHOD_DESCRIPTIONS = {
+    'cot': '逐步拆解问题，适合大多数一般推理任务',
+    'tot': '树状探索多条路径，适用于开放式与复杂分析题',
+    'l2m': 'Least-to-Most 策略，先解易后解难，适合流程规划',
+    'bs': 'Beam Search 多方案筛选，适合对比多种备选思路',
+    'srf': 'Self-Refine 先答后校，适合需要自检和修订的任务',
+    'scr': 'Self-Consistency 多路径投票，增强结论稳定性',
+    'plain': '直接输出模型回答，无额外结构化处理',
+}
 
 # Routes
 @app.route('/')
@@ -222,19 +274,46 @@ def process():
             }), 400
 
         # 提取参数
-        api_key = data.get('api_key')
-        if not api_key:
-            return jsonify({
-                'success': False,
-                'error': '需要API密钥'
-            }), 400
+        provider = (data.get('provider') or '').strip().lower()
+        if not provider:
+            return jsonify({'success': False, 'error': '需要指定API提供商'}), 400
 
-        question = data.get('question')
+        api_key = (data.get('api_key') or '').strip()
+        if not api_key:
+            api_key = general_config.get_default_api_key(provider) or ''
+        if not api_key:
+            return jsonify({'success': False, 'error': '请提供有效的API密钥'}), 400
+
+        question = (data.get('question') or '').strip()
         if not question:
-            return jsonify({
-                'success': False,
-                'error': '需要提问内容'
-            }), 400
+            return jsonify({'success': False, 'error': '需要提问内容'}), 400
+
+        provider_models = general_config.provider_model_map.get(provider, [])
+        model = (data.get('model') or '').strip() or (provider_models[0] if provider_models else None)
+        if not model:
+            return jsonify({'success': False, 'error': '未找到可用模型，请检查提供商设置'}), 400
+
+        reasoning_method = (data.get('reasoning_method') or 'cot').strip().lower()
+        method_config = config.get_method_config(reasoning_method) or {}
+        prompt_template = method_config.get('prompt_format')
+
+        try:
+            max_tokens = int(data.get('max_tokens', general_config.max_tokens))
+        except (TypeError, ValueError):
+            max_tokens = general_config.max_tokens
+        max_tokens = max(1, max_tokens)
+
+        try:
+            chars_per_line = int(data.get('chars_per_line', general_config.chars_per_line))
+        except (TypeError, ValueError):
+            chars_per_line = general_config.chars_per_line
+        chars_per_line = max(10, min(200, chars_per_line))
+
+        try:
+            max_lines = int(data.get('max_lines', general_config.max_lines))
+        except (TypeError, ValueError):
+            max_lines = general_config.max_lines
+        max_lines = max(3, min(30, max_lines))
 
         # 获取客户端信息
         client_info = get_client_info()
@@ -243,17 +322,17 @@ def process():
         conversation = Conversation(
             user_id=current_user.id,
             question=question,
-            api_provider=data.get('provider', ''),
-            model=data.get('model', ''),
-            reasoning_method=data.get('reasoning_method', ''),
-            max_tokens=data.get('max_tokens', 0),
-            chars_per_line=data.get('chars_per_line', 50),
-            max_lines=data.get('max_lines', 10),
+            api_provider=provider,
+            model=model,
+            reasoning_method=reasoning_method,
+            max_tokens=max_tokens,
+            chars_per_line=chars_per_line,
+            max_lines=max_lines,
             client_ip=client_info['ip'],
             user_agent=client_info['user_agent'],
             status='pending'
         )
-        
+
         db.session.add(conversation)
         db.session.commit()
 
@@ -261,80 +340,57 @@ def process():
         conversation.mark_as_started()
         db.session.commit()
 
-        # 执行推理处理 - 这里替换为实际的推理逻辑
+        # 执行推理处理
         try:
-            # 根据选择的推理方法调用相应的处理函数
-            reasoning_method = data.get('reasoning_method', 'cot')
-            
-            # 示例：调用不同的推理方法
-            if reasoning_method == 'l2m':
-                # 调用L2M推理
-                from l2m_reasoning import parse_l2m_response, create_mermaid_diagram
-                # 这里应该是实际调用API的代码
-                # 以下为示例响应
-                raw_output = f"这是对问题 '{question}' 的L2M推理回答。使用的模型是 {data.get('model')}。"
-                
-                # 解析L2M响应
-                l2m_response = parse_l2m_response(raw_output, question)
-                
-                # 创建可视化数据
-                from dataclasses import dataclass
-                @dataclass
-                class VisualizationConfig:
-                    max_chars_per_line: int
-                    max_lines: int
-                
-                viz_config = VisualizationConfig(
-                    max_chars_per_line=data.get('chars_per_line', 50),
-                    max_lines=data.get('max_lines', 10)
-                )
-                visualization_data = {
-                    "type": "mermaid",
-                    "code": create_mermaid_diagram(l2m_response, viz_config),
-                    "chars_per_line": data.get('chars_per_line', 50),
-                    "max_lines": data.get('max_lines', 10)
-                }
-            else:
-                # 默认推理方法
-                raw_output = f"这是对问题 '{question}' 的推理回答。使用的模型是 {data.get('model')}，推理方法是 {reasoning_method}。"
-                
-                # 模拟可视化数据
-                visualization_data = {
-                    "type": "mermaid",
-                    "code": "flowchart TD\n    A[问题] --> B[分析]\n    B --> C[推理]\n    C --> D[结论]",
-                    "chars_per_line": data.get('chars_per_line', 50),
-                    "max_lines": data.get('max_lines', 10)
-                }
-            
-            # 模拟Token使用情况
+            result = reasoning_service.run(
+                provider=provider,
+                api_key=api_key,
+                model=model,
+                question=question,
+                reasoning_method=reasoning_method,
+                prompt_template=prompt_template,
+                max_tokens=max_tokens,
+                chars_per_line=chars_per_line,
+                max_lines=max_lines,
+            )
+
+            visualization_data = result.visualization
+            if visualization_data:
+                conversation.mermaid_code = visualization_data.get('code')
+
+            answer_text = extract_answer_from_result(result)
+
             token_usage = {
-                'input_tokens': len(question) // 4,  # 估算输入token
-                'output_tokens': len(raw_output) // 4,  # 估算输出token
-                'total_tokens': (len(question) + len(raw_output)) // 4
+                'input_tokens': len(question) // 4,
+                'output_tokens': len(result.raw_output) // 4,
+                'total_tokens': (len(question) + len(result.raw_output)) // 4
             }
-            
-            # 标记完成
+
             conversation.mark_as_completed(
-                answer=raw_output,
-                raw_output=raw_output,
+                answer=answer_text,
+                raw_output=result.raw_output,
                 visualization_data=visualization_data,
                 token_usage=token_usage
             )
-            
-            # 更新用户统计
+
             update_user_stats(current_user, token_usage['total_tokens'])
-            
             db.session.commit()
-            
+
             return jsonify({
                 'success': True,
                 'conversation_id': conversation.id,
-                'raw_output': raw_output,
+                'raw_output': result.raw_output,
+                'answer': answer_text,
                 'visualization': visualization_data,
                 'token_usage': token_usage,
                 'processing_time': conversation.processing_time
             })
 
+        except APIError as api_err:
+            logger.error("第三方API错误: %s", api_err)
+            conversation.mark_as_failed(str(api_err))
+            db.session.commit()
+            return jsonify({'success': False, 'error': str(api_err)}), 502
         except Exception as processing_error:
             logger.error(f"推理处理错误: {str(processing_error)}")
             conversation.mark_as_failed(str(processing_error))
@@ -360,21 +416,39 @@ def select_method():
     """Select reasoning method"""
     try:
         data = request.json
-        question = data.get('question', '')
-        
-        if not question.strip():
+        question = (data.get('question') or '').strip()
+
+        if not question:
             return jsonify({
                 'success': False,
                 'error': 'Question is required for method selection'
             }), 400
-        
-        # 智能方法选择逻辑
+
+        lowered = question.lower()
+        length = len(question)
+
+        method_id = 'cot'
+
+        if any(keyword in lowered for keyword in ['revise', 'refine', 'improve', '校正', '优化', '审查']):
+            method_id = 'srf'
+        elif any(keyword in lowered for keyword in ['multiple answers', 'possibilities', 'uncertain', '多种答案', '多种可能']):
+            method_id = 'scr'
+        elif any(keyword in lowered for keyword in ['step', 'steps', 'procedure', '流程', '计划', '步骤', 'how to', '如何', '怎么做']):
+            method_id = 'l2m'
+        elif any(keyword in lowered for keyword in ['compare', '对比', 'pros', 'cons', '方案', '最优']):
+            method_id = 'bs'
+        elif length > 280 or any(keyword in lowered for keyword in ['why', '分析', '深入', '根因', 'comprehensive', 'detailed']):
+            method_id = 'tot'
+        elif any(keyword in lowered for keyword in ['code', '编程', '实现代码', '函数', 'snippet']):
+            method_id = 'plain'
+
+        method_cfg = config.get_method_config(method_id) or {}
         selected_method = {
-            'method_id': 'cot',
-            'name': 'Chain of Thought',
-            'description': '逐步推理方法'
+            'method_id': method_id,
+            'name': method_cfg.get('name', method_id),
+            'description': METHOD_DESCRIPTIONS.get(method_id, method_cfg.get('name', ''))
         }
-        
+
         return jsonify({
             'success': True,
             'selected_method': selected_method
@@ -400,12 +474,47 @@ def long_reasoning():
                 'error': 'No data provided'
             }), 400
 
-        question = data.get('question')
+        question = (data.get('question') or '').strip()
         if not question:
             return jsonify({
                 'success': False,
                 'error': 'Question is required'
             }), 400
+
+        provider = (data.get('provider') or '').strip().lower()
+        if not provider:
+            return jsonify({'success': False, 'error': '需要指定API提供商'}), 400
+
+        api_key = (data.get('api_key') or '').strip()
+        if not api_key:
+            api_key = general_config.get_default_api_key(provider) or ''
+        if not api_key:
+            return jsonify({'success': False, 'error': '请提供有效的API密钥'}), 400
+
+        provider_models = general_config.provider_model_map.get(provider, [])
+        model = (data.get('model') or '').strip() or (provider_models[0] if provider_models else None)
+        if not model:
+            return jsonify({'success': False, 'error': '未找到可用模型，请检查提供商设置'}), 400
+
+        try:
+            max_tokens = int(data.get('max_tokens', general_config.max_tokens * 2))
+        except (TypeError, ValueError):
+            max_tokens = general_config.max_tokens * 2
+        max_tokens = max(1, max_tokens)
+
+        try:
+            chars_per_line = int(data.get('chars_per_line', general_config.chars_per_line))
+        except (TypeError, ValueError):
+            chars_per_line = general_config.chars_per_line
+        chars_per_line = max(10, min(200, chars_per_line))
+
+        try:
+            max_lines = int(data.get('max_lines', general_config.max_lines))
+        except (TypeError, ValueError):
+            max_lines = general_config.max_lines
+        max_lines = max(3, min(40, max_lines))
+
+        prompt_template = data.get('prompt_format') or None
 
         # 获取客户端信息
         client_info = get_client_info()
@@ -414,17 +523,17 @@ def long_reasoning():
         conversation = Conversation(
             user_id=current_user.id,
             question=question,
-            api_provider=data.get('provider', ''),
-            model=data.get('model', ''),
+            api_provider=provider,
+            model=model,
             reasoning_method='long_reasoning',
-            max_tokens=data.get('max_tokens', 0),
-            chars_per_line=data.get('chars_per_line', 50),
-            max_lines=data.get('max_lines', 10),
+            max_tokens=max_tokens,
+            chars_per_line=chars_per_line,
+            max_lines=max_lines,
             client_ip=client_info['ip'],
             user_agent=client_info['user_agent'],
             status='pending'
         )
-        
+
         db.session.add(conversation)
         db.session.commit()
 
@@ -432,40 +541,50 @@ def long_reasoning():
         conversation.mark_as_started()
         db.session.commit()
 
-        # 执行长推理处理
         try:
-            import time
-            time.sleep(2)  # 模拟更长的处理时间
-            
-            raw_output = f"这是对问题 '{question}' 的长推理回答。这个回答包含了更详细的分析过程和多步骤推理。"
-            
-            # 模拟Token使用情况
+            result = reasoning_service.run(
+                provider=provider,
+                api_key=api_key,
+                model=model,
+                question=question,
+                reasoning_method='long_reasoning',
+                prompt_template=prompt_template,
+                max_tokens=max_tokens,
+                chars_per_line=chars_per_line,
+                max_lines=max_lines,
+            )
+
+            answer_text = extract_answer_from_result(result)
             token_usage = {
                 'input_tokens': len(question) // 4,
-                'output_tokens': len(raw_output) // 4,
-                'total_tokens': (len(question) + len(raw_output)) // 4
+                'output_tokens': len(result.raw_output) // 4,
+                'total_tokens': (len(question) + len(result.raw_output)) // 4
             }
-            
-            # 标记完成
+
             conversation.mark_as_completed(
-                answer=raw_output,
-                raw_output=raw_output,
+                answer=answer_text,
+                raw_output=result.raw_output,
+                visualization_data=None,
                 token_usage=token_usage
             )
-            
-            # 更新用户统计
+
             update_user_stats(current_user, token_usage['total_tokens'])
-            
             db.session.commit()
-            
+
             return jsonify({
                 'success': True,
                 'conversation_id': conversation.id,
-                'raw_output': raw_output,
+                'raw_output': result.raw_output,
+                'answer': answer_text,
                 'token_usage': token_usage,
                 'processing_time': conversation.processing_time
             })
 
+        except APIError as api_err:
+            logger.error("第三方API错误: %s", api_err)
+            conversation.mark_as_failed(str(api_err))
+            db.session.commit()
+            return jsonify({'success': False, 'error': str(api_err)}), 502
         except Exception as processing_error:
             logger.error(f"Error during long reasoning: {str(processing_error)}")
             conversation.mark_as_failed(str(processing_error))

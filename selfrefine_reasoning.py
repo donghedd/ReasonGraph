@@ -86,7 +86,7 @@ def create_mermaid_diagram(sr_response: SelfRefineResponse, config: Visualizatio
     Returns:
         Mermaid diagram markup as a string
     """
-    diagram = ['<div class="mermaid">', 'graph TD']
+    diagram = ['graph TD']
     
     # Add question node
     question_content = wrap_text(sr_response.question, config)
@@ -161,5 +161,4 @@ def create_mermaid_diagram(sr_response: SelfRefineResponse, config: Visualizatio
     for step in revised_steps:
         diagram.append(f'    class R{step.number} revision;')
     
-    diagram.append('</div>')
     return '\n'.join(diagram)

@@ -64,7 +64,7 @@ def parse_tot_response(response_text: str, question: str) -> ToTResponse:
 
 def create_mermaid_diagram(tot_response: ToTResponse, config: VisualizationConfig) -> str:
     """Convert ToT response to Mermaid diagram"""
-    diagram = ['<div class="mermaid">', 'graph TD']
+    diagram = ['graph TD']
     
     # Add question node
     question_content = wrap_text(tot_response.question, config)
@@ -116,7 +116,6 @@ def create_mermaid_diagram(tot_response: ToTResponse, config: VisualizationConfi
         '    linkStyle default stroke:#666,stroke-width:2px;'
     ])
     
-    diagram.append('</div>')
     return '\n'.join(diagram)
 
 def wrap_text(text: str, config: VisualizationConfig) -> str:

@@ -100,7 +100,7 @@ def parse_bs_response(response_text: str, question: str) -> BSResponse:
 
 def create_mermaid_diagram(bs_response: BSResponse, config: VisualizationConfig) -> str:
     """Convert Beam Search response to Mermaid diagram"""
-    diagram = ['<div class="mermaid">', 'graph TD']
+    diagram = ['graph TD']
     
     # Add question node
     question_content = wrap_text(bs_response.question, config)
@@ -166,7 +166,6 @@ def create_mermaid_diagram(bs_response: BSResponse, config: VisualizationConfig)
         '    linkStyle default stroke:#666,stroke-width:2px;'
     ])
     
-    diagram.append('</div>')
     return '\n'.join(diagram)
 
 def wrap_text(text: str, config: VisualizationConfig) -> str:

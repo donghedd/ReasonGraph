@@ -77,7 +77,7 @@ def create_mermaid_diagram(l2m_response: L2MResponse, config: 'VisualizationConf
     Returns:
         Mermaid diagram markup as a string
     """
-    diagram = ['<div class="mermaid">', 'graph TD']
+    diagram = ['graph TD']
     
     # Add main question node
     question_content = wrap_text(l2m_response.main_question, config.max_chars_per_line, config.max_lines)
@@ -140,5 +140,4 @@ def create_mermaid_diagram(l2m_response: L2MResponse, config: 'VisualizationConf
         '    linkStyle default stroke:#666,stroke-width:2px;'
     ])
     
-    diagram.append('</div>')
     return '\n'.join(diagram)
