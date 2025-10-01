@@ -165,7 +165,7 @@ Let's solve this step by step:
 <answer>
 [Final answer]
 </answer>'''
-    example_question: str = "Natalia sold clips to 48 of her friends in April, and then she sold half as many clips in May. How many clips did Natalia sell altogether in April and May?"
+    example_question: str = "猫娘昨天为了给主人的新项目优化代码，一口气修复了48个bug喵！但是呢，今天因为主人一直在旁边捣乱，一会儿摸摸耳朵一会儿挠挠下巴，让猫娘完全没办法专心嘛……所以只修复了昨天一半数量的bug喵。 那么算一算，猫娘这两天加起来，一共解决了多少个bug呀？"
 
 @dataclass
 class TreeOfThoughtsConfig:
