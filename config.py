@@ -27,148 +27,104 @@ def load_api_keys_from_file(file_path: str = "api_keys.json") -> Dict[str, str]:
 @dataclass
 class GeneralConfig:
     """General configuration parameters that are method-independent"""
-    available_models: List[str] = field(default_factory=lambda: [
-        # Anthropic Models
-        "claude-3-7-sonnet-20250219",
-        "claude-3-5-sonnet-20241022",
-        "claude-3-5-haiku-20241022",
-        "claude-3-haiku-20240307",
-        "claude-3-sonnet-20240229",
-        "claude-3-opus-20240229",
-        # OpenAI Models
-        "gpt-4",
-        "gpt-4-turbo", 
-        "gpt-4-turbo-preview",
-        "chatgpt-4o-latest",
-        #"gpt-4o-mini",
-        "gpt-3.5-turbo",
-        # Gemini Models
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-2.0-pro-exp-02-05",
-        "gemini-1.5-flash",
-        "gemini-1.5-flash-8b",
-        "gemini-1.5-pro",
-        "gemini-2.0-flash-thinking-exp", 
-        # Together AI Models
-        "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-        #"meta-llama/Llama-3.2-3B-Instruct-Turbo", 
-        "meta-llama/Meta-Llama-3.1-405B-Instruct-Lite-Pro",
-        "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo", 
-        #"meta-llama/Meta-Llama-3.1-70B-Instruct-Reference", 
-        "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo", 
-        "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF", 
-        #"meta-llama/Meta-Llama-3.1-8B-Instruct-Reference", 
-        #"meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-        "meta-llama/Llama-3-70b-chat-hf", 
-        "meta-llama/Meta-Llama-3-70B-Instruct", 
-        "meta-llama/Meta-Llama-3-70B-Instruct-Turbo", 
-        "meta-llama/Meta-Llama-3-70B-Instruct-Lite", 
-        #"meta-llama/Llama-3-8b-chat-hf", 
-        #"meta-llama/Meta-Llama-3-8B-Instruct", 
-        #"meta-llama/Meta-Llama-3-8B-Instruct-Turbo", 
-        #"meta-llama/Meta-Llama-3-8B-Instruct-Lite", 
-        "deepseek-ai/DeepSeek-V3",
-        "mistralai/Mixtral-8x22B-Instruct-v0.1",
-        "Qwen/Qwen2.5-72B-Instruct-Turbo",
-        #"microsoft/WizardLM-2-8x22B",
-        #"databricks/dbrx-instruct",
-        #"nvidia/Llama-3.1-Nemotron-70B-Instruct-HF",
-        # DeepSeek Models
-        "deepseek-chat",
-        "deepseek-reasoner",
-        # Qwen Models
-        "qwen-max",
-        "qwen-max-latest",
-        "qwen-max-2025-01-25",
-        "qwen-plus",
-        "qwen-plus-latest",
-        "qwen-plus-2025-01-25",
-        "qwen-turbo",
-        "qwen-turbo-latest",
-        "qwen-turbo-2024-11-01",
-        "qwq-plus",
-        #"qwen2.5-14b-instruct-1m",
-        #"qwen2.5-7b-instruct-1m",
-        "qwen2.5-72b-instruct",
-        "qwen2.5-32b-instruct",
-        #"qwen2.5-14b-instruct",
-        #"qwen2.5-7b-instruct",
-        # Grok Models
-        "grok-2",
-        "grok-2-latest",
-    ])
-    model_providers: Dict[str, str] = field(default_factory=lambda: {
-        "claude-3-7-sonnet-20250219": "anthropic",
-        "claude-3-5-sonnet-20241022": "anthropic",
-        "claude-3-5-haiku-20241022": "anthropic",
-        "claude-3-haiku-20240307": "anthropic",
-        "claude-3-sonnet-20240229": "anthropic",
-        "claude-3-opus-20240229": "anthropic",
-        "gpt-4": "openai",
-        "gpt-4-turbo": "openai", 
-        "gpt-4-turbo-preview": "openai",
-        "chatgpt-4o-latest": "openai",
-        #"gpt-4o-mini": "openai",
-        "gpt-3.5-turbo": "openai",
-        "gemini-2.0-flash": "google",
-        "gemini-2.0-flash-lite": "google",
-        "gemini-2.0-pro-exp-02-05": "google",
-        "gemini-1.5-flash": "google",
-        "gemini-1.5-flash-8b": "google",
-        "gemini-1.5-pro": "google",
-        "gemini-2.0-flash-thinking-exp": "google", 
-        "meta-llama/Llama-3.3-70B-Instruct-Turbo": "together",
-        #"meta-llama/Llama-3.2-3B-Instruct-Turbo": "together", 
-        "meta-llama/Meta-Llama-3.1-405B-Instruct-Lite-Pro": "together",
-        "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo": "together", 
-        #"meta-llama/Meta-Llama-3.1-70B-Instruct-Reference": "together", 
-        "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo": "together", 
-        "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF": "together", 
-        #"meta-llama/Meta-Llama-3.1-8B-Instruct-Reference": "together", 
-        #"meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo": "together",
-        "meta-llama/Llama-3-70b-chat-hf": "together", 
-        "meta-llama/Meta-Llama-3-70B-Instruct": "together", 
-        "meta-llama/Meta-Llama-3-70B-Instruct-Turbo": "together", 
-        "meta-llama/Meta-Llama-3-70B-Instruct-Lite": "together", 
-        #"meta-llama/Llama-3-8b-chat-hf": "together", 
-        #"meta-llama/Meta-Llama-3-8B-Instruct": "together", 
-        #"meta-llama/Meta-Llama-3-8B-Instruct-Turbo": "together", 
-        #"meta-llama/Meta-Llama-3-8B-Instruct-Lite": "together", 
-        "deepseek-ai/DeepSeek-V3": "together",
-        "mistralai/Mixtral-8x22B-Instruct-v0.1": "together",
-        "Qwen/Qwen2.5-72B-Instruct-Turbo": "together",
-        #"microsoft/WizardLM-2-8x22B": "together",
-        #"databricks/dbrx-instruct": "together",
-        #"nvidia/Llama-3.1-Nemotron-70B-Instruct-HF": "together",
-        "deepseek-chat": "deepseek",
-        "deepseek-reasoner": "deepseek",
-        "qwen-max": "qwen",
-        "qwen-max-latest": "qwen",
-        "qwen-max-2025-01-25": "qwen",
-        "qwen-plus": "qwen",
-        "qwen-plus-latest": "qwen",
-        "qwen-plus-2025-01-25": "qwen",
-        "qwen-turbo": "qwen",
-        "qwen-turbo-latest": "qwen",
-        "qwen-turbo-2024-11-01": "qwen",
-        "qwq-plus": "qwen",
-        #"qwen2.5-14b-instruct-1m": "qwen",
-        #"qwen2.5-7b-instruct-1m": "qwen",
-        "qwen2.5-72b-instruct": "qwen",
-        "qwen2.5-32b-instruct": "qwen",
-        #"qwen2.5-14b-instruct": "qwen",
-        #"qwen2.5-7b-instruct": "qwen",
-        "grok-2": "grok",
-        "grok-2-latest": "grok",
+    provider_model_map: Dict[str, List[str]] = field(default_factory=lambda: {
+        # Anthropic
+        "anthropic": [
+            "claude-3-7-sonnet-20250219",
+            "claude-3-5-sonnet-20241022",
+            "claude-3-5-haiku-20241022",
+            "claude-3-5-haiku-latest",
+            "claude-3-haiku-20240307",
+            "claude-3-sonnet-20240229",
+            "claude-3-opus-20240229",
+            "claude-3.7-opus-preview"
+        ],
+        # OpenAI
+        "openai": [
+            "gpt-5",
+            "chatgpt-5",
+            "gpt-4.1",
+            "gpt-4.1-mini",
+            "gpt-4o",
+            "gpt-4o-mini",
+            "chatgpt-4o-latest",
+            "gpt-4-turbo",
+            "gpt-3.5-turbo"
+        ],
+        # Google Gemini
+        "google": [
+            "gemini-2.0-ultra",
+            "gemini-2.0-flash",
+            "gemini-2.0-flash-lite",
+            "gemini-2.0-pro-exp-02-05",
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-8b",
+            "gemini-1.5-pro",
+            "gemini-2.0-flash-thinking-exp"
+        ],
+        # Together AI / Meta / Mixtral
+        "together": [
+            "meta-llama/Llama-4-405B-Instruct",
+            "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+            "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+            "meta-llama/Meta-Llama-3.1-405B-Instruct-Lite-Pro",
+            "meta-llama/Meta-Llama-3-70B-Instruct",
+            "mistralai/Mixtral-8x22B-Instruct-v0.1",
+            "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF",
+            "deepseek-ai/DeepSeek-V3"
+        ],
+        # DeepSeek
+        "deepseek": [
+            "deepseek-chat",
+            "deepseek-reasoner",
+            "deepseek-math",
+            "deepseek-coder"
+        ],
+        # Qwen
+        "qwen": [
+            "qwen-max",
+            "qwen-max-2025-01-25",
+            "qwen-plus",
+            "qwen-plus-2025-01-25",
+            "qwen-turbo",
+            "qwen-turbo-2024-11-01",
+            "qwen2.5-72b-instruct",
+            "qwen2.5-32b-instruct",
+            "qwq-plus"
+        ],
+        # xAI Grok
+        "grok": [
+            "grok-2",
+            "grok-2-latest",
+            "grok-2-mini"
+        ]
     })
-    providers: List[str] = field(default_factory=lambda: ["anthropic", "openai", "google", "together", "deepseek", "qwen", "grok"])
-    max_tokens: int = 2048
-    chars_per_line: int = 40
-    max_lines: int = 8
-    
+    provider_display_names: Dict[str, str] = field(default_factory=lambda: {
+        "anthropic": "Anthropic",
+        "openai": "OpenAI",
+        "google": "Google Gemini",
+        "together": "Together AI",
+        "deepseek": "DeepSeek",
+        "qwen": "Qwen",
+        "grok": "Grok"
+    })
+    max_tokens: int = 4096
+    chars_per_line: int = 48
+    max_lines: int = 12
+    available_models: List[str] = field(init=False, repr=False)
+    model_providers: Dict[str, str] = field(init=False, repr=False)
+    providers: List[str] = field(init=False, repr=False)
+
     def __post_init__(self):
-        """Load API keys after initialization"""
+        """Derived mappings and load API keys"""
+        self.providers = list(self.provider_model_map.keys())
+        self.available_models = []
+        self.model_providers = {}
+        for provider, models in self.provider_model_map.items():
+            for model in models:
+                self.available_models.append(model)
+                self.model_providers[model] = provider
+
         self.provider_api_keys = load_api_keys_from_file()
 
     def get_default_api_key(self, provider: str) -> str:
@@ -402,25 +358,69 @@ class ReasoningConfig:
 
     def get_initial_values(self) -> dict:
         """Get initial values for UI"""
+        # 按提供商聚合模型列表
+        provider_models = {}
+        for model in self.general.available_models:
+            provider_id = self.general.model_providers.get(model)
+            if not provider_id:
+                # 没有提供商映射的模型直接跳过，避免污染前端列表
+                continue
+            provider_models.setdefault(provider_id, []).append(model)
+
+        api_providers = []
+        for provider_id in self.general.providers:
+            models = provider_models.get(provider_id, [])
+            api_providers.append({
+                "id": provider_id,
+                "name": self.general.provider_display_names.get(provider_id, provider_id.title()),
+                "models": models,
+                "default_api_key": self.general.get_default_api_key(provider_id),
+                "requires_api_key": True
+            })
+
+        # 如果存在未在 providers 列表中的模型，补充到配置末尾
+        extra_providers = set(provider_models.keys()) - set(self.general.providers)
+        for provider_id in extra_providers:
+            models = provider_models.get(provider_id, [])
+            api_providers.append({
+                "id": provider_id,
+                "name": self.general.provider_display_names.get(provider_id, provider_id.title()),
+                "models": models,
+                "default_api_key": self.general.get_default_api_key(provider_id),
+                "requires_api_key": True
+            })
+
+        reasoning_methods = []
+        for method_id, method_config in self.methods.items():
+            reasoning_methods.append({
+                "id": method_id,
+                "name": method_config.name,
+                "prompt_format": method_config.prompt_format,
+                "example_question": method_config.example_question
+            })
+
+        default_provider_id = ""
+        default_model = ""
+        if api_providers:
+            # 优先选择第一个存在模型的提供商
+            provider_with_models = next((p for p in api_providers if p["models"]), api_providers[0])
+            default_provider_id = provider_with_models["id"]
+            default_model = provider_with_models["models"][0] if provider_with_models["models"] else ""
+
+        default_method_id = ""
+        if reasoning_methods:
+            default_method_id = next((m["id"] for m in reasoning_methods if m["id"] == "cot"), reasoning_methods[0]["id"])
+
         return {
-            "general": {
-                "available_models": self.general.available_models,
-                "model_providers": self.general.model_providers,
-                "providers": self.general.providers,
+            "api_providers": api_providers,
+            "reasoning_methods": reasoning_methods,
+            "default_values": {
+                "provider": default_provider_id,
+                "model": default_model,
+                "reasoning_method": default_method_id,
                 "max_tokens": self.general.max_tokens,
-                "default_api_key": self.general.get_default_api_key(self.general.providers[0]),
-                "visualization": {
-                    "chars_per_line": self.general.chars_per_line,
-                    "max_lines": self.general.max_lines
-                }
-            },
-            "methods": {
-                method_id: {
-                    "name": config.name,
-                    "prompt_format": config.prompt_format,
-                    "example_question": config.example_question
-                }
-                for method_id, config in self.methods.items()
+                "chars_per_line": self.general.chars_per_line,
+                "max_lines": self.general.max_lines
             }
         }
     
@@ -433,3 +433,13 @@ class ReasoningConfig:
 
 # Create global config instance
 config = ReasoningConfig()
+
+
+def get_initial_values() -> dict:
+    """Module-level helper used by视图函数，返回初始配置"""
+    return config.get_initial_values()
+
+
+def get_method_config(method_id: str) -> Optional[dict]:
+    """模块级便捷方法，供外部调用获取指定推理方法配置"""
+    return config.get_method_config(method_id)

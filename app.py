@@ -485,46 +485,6 @@ def long_reasoning():
             'error': str(e)
         }), 500
 
-@app.route('/history')
-@login_required
-def get_history():
-    """获取用户的历史对话记录"""
-    try:
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 20, type=int)
-        
-        conversations = Conversation.query.filter_by(user_id=current_user.id)\
-                                       .order_by(Conversation.created_at.desc())\
-                                       .paginate(page=page, per_page=per_page, error_out=False)
-        
-        return jsonify({
-            'conversations': [conv.to_dict() for conv in conversations.items],
-            'total': conversations.total,
-            'pages': conversations.pages,
-            'current_page': page
-        })
-    except Exception as e:
-        logger.error(f"Error getting history: {str(e)}")
-        return jsonify({
-            'error': str(e)
-        }), 500
-
-@app.route('/history/<int:conversation_id>')
-@login_required
-def get_conversation(conversation_id):
-    """获取特定对话的详细信息"""
-    try:
-        conversation = Conversation.query.filter_by(id=conversation_id, user_conversation = Conversation.query.filter_by(id=conversation_id, user_id=current_user.id).first())
-        if not conversation:
-            return jsonify({'error': 'Conversation not found'}), 404
-        
-        return jsonify(conversation.to_dict())
-    except Exception as e:
-        logger.error(f"Error getting conversation {conversation_id}: {str(e)}")
-        return jsonify({
-            'error': str(e)
-        }), 500
-
 @app.route('/profile')
 @login_required
 def profile():
@@ -661,7 +621,7 @@ def admin_stats():
 
 @app.route('/delete-conversation/<int:conversation_id>', methods=['DELETE'])
 @login_required
-def delete_conversation(conversation_id):
+def delete_conversation_api(conversation_id):
     """删除对话记录"""
     try:
         conversation = Conversation.query.filter_by(id=conversation_id, user_id=current_user.id).first()
@@ -811,7 +771,11 @@ def health_check():
 if __name__ == '__main__':
     try:
         with app.app_context():
-            init_database()
+            if os.getenv('AUTO_INIT_DB', 'false').lower() == 'true':
+                logger.info("AUTO_INIT_DB=true，执行数据库初始化流程")
+                init_database()
+            else:
+                logger.info("跳过自动数据库初始化，假设数据库和表已存在")
         
         logger.info("Starting ReasonGraph application with MySQL...")
         app.run(

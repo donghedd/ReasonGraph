@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import json
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 db = SQLAlchemy()
 
@@ -68,8 +69,8 @@ class Conversation(db.Model):
     
     # 对话内容
     question = db.Column(db.Text, nullable=False, comment='用户问题')
-    answer = db.Column(db.LongText, nullable=True, comment='AI回答')
-    raw_output = db.Column(db.LongText, nullable=True, comment='原始输出')
+    answer = db.Column(LONGTEXT, nullable=True, comment='AI回答')
+    raw_output = db.Column(LONGTEXT, nullable=True, comment='原始输出')
     
     # API和模型信息
     api_provider = db.Column(db.String(50), nullable=True, comment='API提供商')
@@ -87,8 +88,8 @@ class Conversation(db.Model):
     total_tokens = db.Column(db.Integer, nullable=True, comment='总Token数')
     
     # 可视化数据
-    visualization_data = db.Column(db.LongText, nullable=True, comment='可视化数据(JSON)')
-    mermaid_code = db.Column(db.LongText, nullable=True, comment='Mermaid图表代码')
+    visualization_data = db.Column(LONGTEXT, nullable=True, comment='可视化数据(JSON)')
+    mermaid_code = db.Column(LONGTEXT, nullable=True, comment='Mermaid图表代码')
     
     # 状态和错误信息
     status = db.Column(db.String(20), default='pending', comment='状态: pending/completed/failed')
@@ -221,27 +222,54 @@ class UserSession(db.Model):
 # 创建索引
 def create_indexes():
     """创建数据库索引以优化查询性能"""
-    with db.engine.connect() as conn:
+
+    engine = db.engine
+    dialect_name = engine.dialect.name.lower()
+
+    def _index_exists(conn, table_name: str, index_name: str) -> bool:
+        """检查索引是否已存在，避免在不支持 IF NOT EXISTS 的 MySQL 上报错"""
+        if dialect_name != 'mysql':
+            return False
+
+        query = db.text(
+            """
+            SELECT COUNT(1)
+            FROM information_schema.statistics
+            WHERE table_schema = DATABASE()
+              AND table_name = :table_name
+              AND index_name = :index_name
+            """
+        )
+        result = conn.execute(query, {"table_name": table_name, "index_name": index_name}).scalar()
+        return bool(result)
+
+    def _ensure_index(conn, table_name: str, index_name: str, column_expr: str) -> None:
+        if dialect_name == 'mysql':
+            if _index_exists(conn, table_name, index_name):
+                return
+            conn.execute(db.text(f"CREATE INDEX {index_name} ON {table_name} ({column_expr})"))
+        else:
+            conn.execute(db.text(f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} ({column_expr})"))
+
+    with engine.connect() as conn:
         # 对话表索引
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_user_id ON conversations(user_id)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_created_at ON conversations(created_at)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_status ON conversations(status)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_api_provider ON conversations(api_provider)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_model ON conversations(model)'))
-        
-        # 新增索引
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_reasoning_method ON conversations(reasoning_method)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_model ON conversations(model)'))
+        _ensure_index(conn, "conversations", "idx_conversations_user_id", "user_id")
+        _ensure_index(conn, "conversations", "idx_conversations_created_at", "created_at")
+        _ensure_index(conn, "conversations", "idx_conversations_status", "status")
+        _ensure_index(conn, "conversations", "idx_conversations_api_provider", "api_provider")
+        _ensure_index(conn, "conversations", "idx_conversations_model", "model")
+        _ensure_index(conn, "conversations", "idx_conversations_reasoning_method", "reasoning_method")
+
         # 用户表索引
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at)'))
-        
+        _ensure_index(conn, "users", "idx_users_username", "username")
+        _ensure_index(conn, "users", "idx_users_email", "email")
+        _ensure_index(conn, "users", "idx_users_created_at", "created_at")
+
         # 标签表索引
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_tags_conversation_id ON conversation_tags(conversation_id)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_tags_name ON conversation_tags(tag_name)'))
-        
+        _ensure_index(conn, "conversation_tags", "idx_tags_conversation_id", "conversation_id")
+        _ensure_index(conn, "conversation_tags", "idx_tags_name", "tag_name")
+
         # 会话表索引
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON user_sessions(user_id)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_sessions_token ON user_sessions(session_token)'))
-        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_sessions_expires ON user_sessions(expires_at)'))
+        _ensure_index(conn, "user_sessions", "idx_sessions_user_id", "user_id")
+        _ensure_index(conn, "user_sessions", "idx_sessions_token", "session_token")
+        _ensure_index(conn, "user_sessions", "idx_sessions_expires", "expires_at")
