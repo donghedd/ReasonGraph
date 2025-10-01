@@ -121,6 +121,15 @@
             margin-bottom: 20px;
             border-left: 4px solid #363;
         }
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .remember-me input {
+            width: auto;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -163,7 +172,8 @@
             
             const formData = {
                 username: document.getElementById('username').value,
-                password: document.getElementById('password').value
+                password: document.getElementById('password').value,
+                remember_me: document.getElementById('remember-me').checked
             };
             
             try {

@@ -82,19 +82,76 @@ def login():
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
+        remember_me = data.get('remember_me', False)
         
         if not username or not password:
             return jsonify({'success': False, 'message': '用户名和密码不能为空'})
         
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
-            login_user(user)
+            login_user(user, remember=remember_me)  # 添加记住我功能
             user.update_login_time()
             return jsonify({'success': True, 'message': '登录成功'})
         else:
             return jsonify({'success': False, 'message': '用户名或密码错误'})
     
     return render_template('login.html')
+
+# 添加获取用户历史记录的路由
+@app.route('/history')
+@login_required
+def get_history():
+    """获取用户的历史对话记录"""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    pagination = Conversation.query.filter_by(user_id=current_user.id)\
+        .order_by(Conversation.created_at.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+    
+    conversations = pagination.items
+    
+    return jsonify({
+        'conversations': [conv.to_dict() for conv in conversations],
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': page
+    })
+
+@app.route('/history/<int:conversation_id>')
+@login_required
+def get_conversation(conversation_id):
+    """获取特定对话的详细信息"""
+    conversation = Conversation.query.filter_by(
+        id=conversation_id, 
+        user_id=current_user.id
+    ).first()
+    
+    if not conversation:
+        return jsonify({'error': '对话不存在或无权访问'}), 404
+    
+    return jsonify(conversation.to_dict())
+
+@app.route('/history/<int:conversation_id>/delete', methods=['DELETE'])
+@login_required
+def delete_conversation(conversation_id):
+    """删除特定对话"""
+    conversation = Conversation.query.filter_by(
+        id=conversation_id, 
+        user_id=current_user.id
+    ).first()
+    
+    if not conversation:
+        return jsonify({'error': '对话不存在或无权访问'}), 404
+    
+    try:
+        db.session.delete(conversation)
+        db.session.commit()
+        return jsonify({'success': True, 'message': '对话已删除'})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"删除对话错误: {str(e)}")
+        return jsonify({'success': False, 'message': '删除对话失败'})
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -156,27 +213,27 @@ def process():
     """Process the reasoning request"""
     conversation = None
     try:
-        # Get request data
+        # 获取请求数据
         data = request.json
         if not data:
             return jsonify({
                 'success': False,
-                'error': 'No data provided'
+                'error': '未提供数据'
             }), 400
 
-        # Extract parameters
+        # 提取参数
         api_key = data.get('api_key')
         if not api_key:
             return jsonify({
                 'success': False,
-                'error': 'API key is required'
+                'error': '需要API密钥'
             }), 400
 
         question = data.get('question')
         if not question:
             return jsonify({
                 'success': False,
-                'error': 'Question is required'
+                'error': '需要提问内容'
             }), 400
 
         # 获取客户端信息
@@ -204,21 +261,50 @@ def process():
         conversation.mark_as_started()
         db.session.commit()
 
-        # 执行推理处理
+        # 执行推理处理 - 这里替换为实际的推理逻辑
         try:
-            # 这里是模拟推理过程，实际使用时需要替换为真实的推理逻辑
-            import time
-            time.sleep(1)  # 模拟处理时间
+            # 根据选择的推理方法调用相应的处理函数
+            reasoning_method = data.get('reasoning_method', 'cot')
             
-            raw_output = f"这是对问题 '{question}' 的推理回答。使用的模型是 {data.get('model')}，推理方法是 {data.get('reasoning_method')}。"
-            
-            # 模拟可视化数据
-            visualization_data = {
-                "type": "mermaid",
-                "code": "flowchart TD\n    A[问题] --> B[分析]\n    B --> C[推理]\n    C --> D[结论]",
-                "chars_per_line": data.get('chars_per_line', 50),
-                "max_lines": data.get('max_lines', 10)
-            }
+            # 示例：调用不同的推理方法
+            if reasoning_method == 'l2m':
+                # 调用L2M推理
+                from l2m_reasoning import parse_l2m_response, create_mermaid_diagram
+                # 这里应该是实际调用API的代码
+                # 以下为示例响应
+                raw_output = f"这是对问题 '{question}' 的L2M推理回答。使用的模型是 {data.get('model')}。"
+                
+                # 解析L2M响应
+                l2m_response = parse_l2m_response(raw_output, question)
+                
+                # 创建可视化数据
+                from dataclasses import dataclass
+                @dataclass
+                class VisualizationConfig:
+                    max_chars_per_line: int
+                    max_lines: int
+                
+                viz_config = VisualizationConfig(
+                    max_chars_per_line=data.get('chars_per_line', 50),
+                    max_lines=data.get('max_lines', 10)
+                )
+                visualization_data = {
+                    "type": "mermaid",
+                    "code": create_mermaid_diagram(l2m_response, viz_config),
+                    "chars_per_line": data.get('chars_per_line', 50),
+                    "max_lines": data.get('max_lines', 10)
+                }
+            else:
+                # 默认推理方法
+                raw_output = f"这是对问题 '{question}' 的推理回答。使用的模型是 {data.get('model')}，推理方法是 {reasoning_method}。"
+                
+                # 模拟可视化数据
+                visualization_data = {
+                    "type": "mermaid",
+                    "code": "flowchart TD\n    A[问题] --> B[分析]\n    B --> C[推理]\n    C --> D[结论]",
+                    "chars_per_line": data.get('chars_per_line', 50),
+                    "max_lines": data.get('max_lines', 10)
+                }
             
             # 模拟Token使用情况
             token_usage = {
@@ -250,7 +336,7 @@ def process():
             })
 
         except Exception as processing_error:
-            logger.error(f"Error during reasoning processing: {str(processing_error)}")
+            logger.error(f"推理处理错误: {str(processing_error)}")
             conversation.mark_as_failed(str(processing_error))
             db.session.commit()
             return jsonify({
@@ -259,7 +345,7 @@ def process():
             }), 500
 
     except Exception as e:
-        logger.error(f"Error in process endpoint: {str(e)}")
+        logger.error(f"处理请求时出错: {str(e)}")
         if conversation:
             conversation.mark_as_failed(str(e))
             db.session.commit()

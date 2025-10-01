@@ -229,6 +229,9 @@ def create_indexes():
         conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_api_provider ON conversations(api_provider)'))
         conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_model ON conversations(model)'))
         
+        # 新增索引
+        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_reasoning_method ON conversations(reasoning_method)'))
+        conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_conversations_model ON conversations(model)'))
         # 用户表索引
         conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)'))
         conn.execute(db.text('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)'))
