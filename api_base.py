@@ -295,15 +295,21 @@ class PackycodeAPI(BaseAPI):
 
             if self.wire_api == "responses":
                 url = f"{self.base_url}/responses"
-                payload = {
+                default_instructions = (
+                    os.getenv('PACKYCODE_INSTRUCTIONS')
+                    or "You are Codex, an advanced reasoning assistant for ReasonGraph."
+                )
+                payload: Dict[str, Any] = {
                     "model": self.base_model,
                     "input": formatted_prompt,
+                    "instructions": default_instructions,
                     "stream": True,
                     "max_output_tokens": max_tokens,
                     "response_format": {"type": "text"}
                 }
                 if effort:
                     payload['reasoning'] = {"effort": effort}
+
                 response = self.session.post(url, json=payload, stream=True, timeout=120)
                 return self._consume_responses_stream(response)
 
@@ -333,13 +339,21 @@ class PackycodeAPI(BaseAPI):
                 provider_name,
                 status_code=403
             )
-        if response.status_code >= 400:
+        if response.status_code and response.status_code >= 400:
             try:
-                error_json = response.json()
+                detail = response.json()
+                if isinstance(detail, dict):
+                    message = detail.get('detail') or detail.get('message')
+                else:
+                    message = str(detail)
             except ValueError:
-                error_json = response.text
-            raise APIError(str(error_json), provider_name, response.status_code)
+                message = response.text or f"HTTP {response.status_code}"
 
+            raise APIError(
+                message or f"Packycode API 请求失败 (HTTP {response.status_code})",
+                provider_name,
+                status_code=response.status_code
+            )
     def _consume_responses_stream(self, response: requests.Response) -> str:
         self._ensure_response_ok(response, self.provider_name)
 

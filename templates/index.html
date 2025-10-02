@@ -14,18 +14,20 @@
         }
 
         .banner {
-            margin: 3px 30px;
-            border-radius: 16px;
+            margin: 18px auto;
+            border-radius: 18px;
             background-image: url("{{ url_for('static', filename='assets/banner-bg.jpg') }}");
             background-size: cover;
             background-position: center;
             box-shadow: 0 28px 60px -32px rgba(17, 24, 39, 0.65);
-            height: 440px;
+            height: 520px;
+            max-width: 1220px;
+            width: calc(100% - 60px);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
-            padding: 0 48px;
+            padding: 32px 56px;
         }
 
         .banner::before {
@@ -36,7 +38,7 @@
             right: 0;
             bottom: 0;
             background: rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
+            border-radius: 18px;
         }
 
         .banner-content {
@@ -45,24 +47,27 @@
             text-align: center;
             color: white;
             width: 100%;
-            max-width: 980px;
-            padding: 12px 32px 36px;
+            max-width: 1040px;
+            padding: 24px 36px 40px;
         }
 
         .banner-content h1 {
             font-size: 3.2em;
-            margin: 110px 0 24px 0;
+            margin: 96px 0 24px 0;
             font-weight: 300;
             letter-spacing: 2.5px;
         }
 
         .search-area {
-            margin-top: 36px;
+            margin-top: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .search-input-container {
             position: relative;
-            margin-bottom: 16px;
+            margin-bottom: 0;
         }
 
         .search-input {
@@ -76,8 +81,8 @@
             backdrop-filter: blur(12px);
             box-shadow: 0 18px 40px -24px rgba(17, 24, 39, 0.6);
             resize: none;
-            max-height: 260px;
-            min-height: 80px;
+            max-height: 240px;
+            min-height: 96px;
             box-sizing: border-box;
             color: #1f2937;
             transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, transform 0.2s ease;
@@ -97,16 +102,15 @@
 
         .search-buttons {
             display: flex;
-            gap: 15px;
+            gap: 16px;
             justify-content: center;
             flex-wrap: wrap;
             align-items: center;
-            margin-top: 18px;
         }
 
         .search-buttons.buttons-wrap {
             justify-content: flex-start;
-            gap: 10px;
+            gap: 12px;
         }
 
         .search-buttons button {
@@ -145,38 +149,67 @@
             border: 1px solid rgba(255, 107, 107, 0.3);
         }
 
+        .error-message.info {
+            color: #1d4ed8;
+            background: rgba(96, 165, 250, 0.15);
+            border-color: rgba(96, 165, 250, 0.35);
+        }
+
+        .error-message.success {
+            color: #047857;
+            background: rgba(52, 211, 153, 0.18);
+            border-color: rgba(34, 197, 94, 0.35);
+        }
+
         .links {
-            margin-top: 20px;
+            margin-top: 26px;
             font-size: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .links-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .link-divider {
+            color: rgba(255, 255, 255, 0.6);
         }
 
         .search-buttons select {
             position: relative;
-            padding: 10px 40px 10px 16px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.7);
-            background: rgba(255, 255, 255, 0.95);
-            color: #1f2937;
+            padding: 10px 42px 10px 18px;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            background: rgba(15, 23, 42, 0.85);
+            color: #f8fafc;
             font-weight: 500;
             cursor: pointer;
             appearance: none;
-            box-shadow: 0 16px 32px -24px rgba(17, 24, 39, 0.45);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 18px 36px -24px rgba(17, 24, 39, 0.55);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
         }
 
         .search-buttons select:hover {
-            border-color: rgba(102, 126, 234, 0.75);
-            box-shadow: 0 20px 40px -22px rgba(102, 126, 234, 0.55);
+            border-color: rgba(255, 255, 255, 0.85);
+            background: rgba(15, 23, 42, 0.92);
+            box-shadow: 0 22px 44px -26px rgba(102, 126, 234, 0.6);
         }
 
         .search-buttons select:focus {
             outline: none;
             border-color: rgba(102, 126, 234, 0.85);
-            box-shadow: 0 22px 48px -20px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 24px 50px -24px rgba(102, 126, 234, 0.7);
         }
 
         .search-buttons select option {
-            color: #1f2937;
+            color: #0f172a;
             background: #ffffff;
         }
 
@@ -495,6 +528,77 @@
             font-weight: 500;
         }
 
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .history-btn {
+            padding: 8px 18px;
+            border-radius: 24px;
+            background: #667eea;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 12px 24px -18px rgba(102, 126, 234, 0.8);
+            transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+        }
+
+        .history-btn:hover {
+            background: #5563d6;
+            box-shadow: 0 14px 32px -16px rgba(85, 99, 214, 0.85);
+            transform: translateY(-1px);
+        }
+
+        .history-list {
+            max-height: 420px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-actions {
+            margin-top: 12px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-action-btn {
+            padding: 6px 14px;
+            border-radius: 18px;
+            border: 1px solid #d6dcff;
+            background: #eef2ff;
+            color: #1d4ed8;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-action-btn:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            color: #1e3a8a;
+        }
+
+        .history-action-btn.danger {
+            border-color: #fecaca;
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .history-action-btn.danger:hover {
+            background: #fecaca;
+            border-color: #fca5a5;
+            color: #7f1d1d;
+        }
+
         .status-completed {
             background: #e8f5e8;
             color: #2e7d32;
@@ -518,6 +622,11 @@
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #eee;
+        }
+
+        .history-page-info {
+            color: #4b5563;
+            font-size: 0.9em;
         }
 
         .history-pagination button {
@@ -560,6 +669,11 @@
             border-left: 4px solid #667eea;
         }
 
+        .conversation-replay.empty-answer {
+            background: #fff7ed;
+            border-left-color: #f97316;
+        }
+
         .replay-question, .replay-answer {
             margin-bottom: 15px;
         }
@@ -581,6 +695,11 @@
             overflow-y: auto;
         }
 
+        .conversation-replay.empty-answer .replay-answer pre {
+            border-color: #fed7aa;
+            background: #fffaf0;
+        }
+
         .replay-meta {
             font-size: 0.9em;
             color: #666;
@@ -593,6 +712,14 @@
             color: #666;
             padding: 20px;
             font-style: italic;
+        }
+
+        .history-error {
+            text-align: center;
+            color: #b91c1c;
+            background: #fee2e2;
+            border-radius: 8px;
+            padding: 20px;
         }
 
         @media (max-width: 768px) {
@@ -638,77 +765,6 @@
                 margin-bottom: 20px;
             }
         }
-            .history-section {
-        margin-top: 30px;
-        padding: 20px;
-        background-color: #f9f9f9;
-        border-radius: 8px;
-    }
-    
-    .history-controls {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 15px;
-    }
-    
-    .history-btn {
-        padding: 8px 16px;
-        background-color: #667eea;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    .history-list {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-    
-    .history-item {
-        padding: 15px;
-        background-color: white;
-        border-radius: 4px;
-        margin-bottom: 10px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        cursor: pointer;
-    }
-    
-    .history-item:hover {
-        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    }
-    
-    .history-item .question {
-        font-weight: bold;
-        margin-bottom: 5px;
-        color: #333;
-    }
-    
-    .history-item .meta {
-        font-size: 0.85em;
-        color: #666;
-        display: flex;
-        justify-content: space-between;
-    }
-    
-    .history-pagination {
-        display: flex;
-        gap: 5px;
-    }
-    
-    .page-btn {
-        padding: 5px 10px;
-        border: 1px solid #ddd;
-        background-color: white;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    .page-btn.active {
-        background-color: #667eea;
-        color: white;
-        border-color: #667eea;
-    }
     </style>
 </head>
 <body>
@@ -746,12 +802,22 @@
                 </div>
             </div>
             <div class="links">
-                <a href="https://github.com/ZongqianLi/ReasonGraph"><u>Github</u> |&nbsp</a><a href="https://arxiv.org/abs/2503.03979"><u>论文</u> |&nbsp</a><a href="mailto:zongqianli.work@outlook.com"><u>Email</u></a>
-                <span class="link-separator"> |&nbsp|&nbsp</span><a href="./index.html" class="tooltip tooltip-top lang-tooltip english-tooltip"><u>English</u> /&nbsp
-                <span class="tooltiptext">Switch to English version; To get responses in other languages, ask in that language and say "please answer in this language"</span>
-                </a><a href="./index_cn.html" class="tooltip tooltip-top lang-tooltip chinese-tooltip"><u>中文</u>
-                <span class="tooltiptext">切换到中文版；如果想使模型输出中文，只需用中文提问，同时输入"请使用中文回答"</span>
-                </a>
+                <span class="links-group">
+                    <a href="https://github.com/ZongqianLi/ReasonGraph"><u>Github</u></a>
+                    <span class="link-divider">|</span>
+                    <a href="https://arxiv.org/abs/2503.03979"><u>论文</u></a>
+                    <span class="link-divider">|</span>
+                    <a href="mailto:zongqianli.work@outlook.com"><u>Email</u></a>
+                </span>
+                <span class="links-group">
+                    <a href="./index.html" class="tooltip tooltip-top lang-tooltip english-tooltip"><u>English</u>
+                        <span class="tooltiptext">Switch to English version; To get responses in other languages, ask in that language and say "please answer in this language"</span>
+                    </a>
+                    <span class="link-divider">/</span>
+                    <a href="./index_cn.html" class="tooltip tooltip-top lang-tooltip chinese-tooltip"><u>中文</u>
+                        <span class="tooltiptext">切换到中文版；如果想使模型输出中文，只需用中文提问，同时输入"请使用中文回答"</span>
+                    </a>
+                </span>
             </div>
         </div>
     </div>
@@ -835,18 +901,6 @@
                 <div class="history-loading">加载历史记录中...</div>
             </div>
         </div>
-        <!-- 历史记录部分 -->
-        <div class="history-section">
-            <h2>对话历史</h2>
-            <div id="history-container">
-                <div class="history-loading">加载历史记录...</div>
-            </div>
-            <div class="history-pagination">
-                <button id="prev-page" onclick="loadHistory(currentPage - 1)">上一页</button>
-                <span id="page-info">第 1 页</span>
-                <button id="next-page" onclick="loadHistory(currentPage + 1)">下一页</button>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -869,6 +923,9 @@
         let lastMermaidCode = "";
         let currentPage = 1;
         let totalPages = 1;
+        let isProcessing = false;
+        let isHistoryLoading = false;
+        let pendingHistoryPage = null;
 
         // Initialize configuration
         async function initializeConfig() {
@@ -1012,14 +1069,36 @@
             return true;
         }
 
-        // Show error
-        function showError(message) {
+        function showInlineMessage(message, type = 'error') {
             const errorElement = document.getElementById('question-error');
+            if (!errorElement) return;
+
             errorElement.textContent = message;
+            errorElement.classList.remove('info', 'success');
+            if (type === 'info' || type === 'success') {
+                errorElement.classList.add(type);
+            }
+
             errorElement.style.display = 'block';
-            setTimeout(() => {
+            if (errorElement._hideTimer) {
+                clearTimeout(errorElement._hideTimer);
+            }
+            const timeout = type === 'error' ? 5000 : 3200;
+            errorElement._hideTimer = setTimeout(() => {
                 errorElement.style.display = 'none';
-            }, 5000);
+            }, timeout);
+        }
+
+        function showError(message) {
+            showInlineMessage(message, 'error');
+        }
+
+        function showInfo(message) {
+            showInlineMessage(message, 'info');
+        }
+
+        function showSuccess(message) {
+            showInlineMessage(message, 'success');
         }
 
         // Update button text while preserving tooltip
@@ -1034,6 +1113,11 @@
         // Process question
         async function processQuestion(isMetaReasoning = false) {
             if (!validateInputs()) {
+                return;
+            }
+
+            if (isProcessing && !isMetaReasoning) {
+                showInfo('当前已有推理任务在运行，请稍候...');
                 return;
             }
 
@@ -1052,6 +1136,9 @@
 
             // Lock visualization
             lockVisualization();
+            clearVisualization();
+
+            isProcessing = true;
 
             const data = {
                 provider: document.getElementById('api-provider').value,
@@ -1082,16 +1169,20 @@
 
                     if (result.visualization) {
                         displayVisualization(result.visualization);
+                    } else {
+                        clearVisualization();
                     }
                     
                     // 重新加载历史记录
                     loadHistory(1);
                 } else {
+                    clearVisualization();
                     showError(result.error || '处理失败');
                     rawOutput.textContent = result.error || '发生未知错误';
                     rawOutput.style.color = '#dc2626';
                 }
             } catch (error) {
+                clearVisualization();
                 showError('处理请求失败: ' + error.message);
                 rawOutput.textContent = '请求失败: ' + error.message;
                 rawOutput.style.color = '#dc2626';
@@ -1105,11 +1196,17 @@
                 if (isMetaReasoning) {
                                         updateButtonTextPreserveTooltip(metaButton, '元推理');
                 }
+                isProcessing = false;
             }
         }
 
         // Meta reasoning
         async function metaReasoning() {
+            if (isProcessing) {
+                showInfo('当前已有推理任务在执行，请稍后再试。');
+                return;
+            }
+
             const metaButton = document.getElementById('meta-btn');
             const rawOutput = document.getElementById('raw-output');
 
@@ -1169,6 +1266,11 @@
                 return;
             }
 
+            if (isProcessing) {
+                showInfo('当前已有推理任务在运行，请稍候再试。');
+                return;
+            }
+
             const processButton = document.getElementById('process-btn');
             const metaButton = document.getElementById('meta-btn');
             const longButton = document.getElementById('long-btn');
@@ -1184,6 +1286,9 @@
 
             // Lock visualization
             lockVisualization();
+            clearVisualization();
+
+            isProcessing = true;
 
             const data = {
                 provider: document.getElementById('api-provider').value,
@@ -1211,16 +1316,18 @@
                 if (result.success) {
                     rawOutput.textContent = result.raw_output || '长推理完成';
                     rawOutput.style.color = '#059669';
-                    
+
                     // 重新加载历史记录
                     loadHistory(1);
                 } else {
+                    clearVisualization();
                     showError(result.error || '长推理失败');
                     rawOutput.textContent = result.error || '初始处理过程中发生未知错误';
                     rawOutput.style.color = '#dc2626';
                 }
             } catch (error) {
                 console.error('Long reasoning error:', error);
+                clearVisualization();
                 showError('处理长推理请求失败: ' + error.message);
                 rawOutput.textContent = '长推理失败: ' + error.message;
                 rawOutput.style.color = '#dc2626';
@@ -1231,12 +1338,14 @@
                 metaButton.disabled = false;
                 longButton.disabled = false;
                 updateButtonTextPreserveTooltip(longButton, '长推理');
+                isProcessing = false;
             }
         }
 
         // Display visualization
         function displayVisualization(visualizationData) {
             if (!visualizationData || !visualizationData.code) {
+                clearVisualization();
                 return;
             }
 
@@ -1315,163 +1424,349 @@
         function downloadDiagram() {
             const svg = document.querySelector('#mermaid-diagram svg');
             if (!svg) {
-                alert('没有可下载的图表');
+                showInfo('没有可下载的图表');
                 return;
             }
 
-            // Create a canvas to convert SVG to PNG
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             const data = new XMLSerializer().serializeToString(svg);
             const DOMURL = window.URL || window.webkitURL || window;
-            
+
             const img = new Image();
-            const svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+            const svgBlob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
             const url = DOMURL.createObjectURL(svgBlob);
-            
+
             img.onload = function() {
                 canvas.width = img.width;
                 canvas.height = img.height;
                 ctx.drawImage(img, 0, 0);
                 DOMURL.revokeObjectURL(url);
-                
+
                 canvas.toBlob(function(blob) {
                     const link = document.createElement('a');
                     link.download = 'reasoning-diagram.png';
-                    link.href = URL.createObjectURL(blob);
+                    const blobUrl = DOMURL.createObjectURL(blob);
+                    link.href = blobUrl;
                     link.click();
+                    setTimeout(() => DOMURL.revokeObjectURL(blobUrl), 1000);
                 });
             };
-            
+
+            img.onerror = function() {
+                showError('图表导出失败，请稍后重试');
+            };
+
             img.src = url;
         }
 
         function downloadMermaidCode() {
             if (!lastMermaidCode) {
-                alert('没有可下载的代码');
+                showInfo('当前没有可导出的可视化代码');
                 return;
             }
 
             const blob = new Blob([lastMermaidCode], { type: 'text/plain' });
             const link = document.createElement('a');
             link.download = 'reasoning-diagram.mmd';
-            link.href = URL.createObjectURL(blob);
+            const codeUrl = URL.createObjectURL(blob);
+            link.href = codeUrl;
             link.click();
+            setTimeout(() => URL.revokeObjectURL(codeUrl), 1000);
         }
 
-        // 历史记录相关函数
-        async function loadHistory(page = 1) {
+        function clearVisualization() {
+            const container = document.getElementById('mermaid-container');
+            const diagram = document.getElementById('mermaid-diagram');
+            if (diagram) {
+                diagram.innerHTML = '<div class="placeholder-visualization">可视化结果将在此显示</div>';
+            }
+            if (container) {
+                container.classList.remove('has-visualization');
+            }
+            lastMermaidCode = '';
+        }
+
+        const escapeHtml = (unsafe = '') => String(unsafe)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+        const truncateText = (text = '', limit = 80) => {
+            if (!text) return '';
+            return text.length > limit ? `${text.slice(0, limit)}...` : text;
+        };
+
+        const formatDateTime = (value) => {
+            if (!value) return '未知时间';
             try {
-                const response = await fetch(`/history?page=${page}&per_page=10`);
-                const data = await response.json();
-                
-                currentPage = data.current_page;
-                totalPages = data.pages;
-                
-                const historyContainer = document.getElementById('history-container');
-                if (data.conversations.length === 0) {
-                    historyContainer.innerHTML = '<div class="no-history">暂无对话记录</div>';
-                } else {
-                    historyContainer.innerHTML = data.conversations.map(conv => `
-                        <div class="history-item" onclick="loadConversation(${conv.id})">
-                            <div class="history-question">${conv.question.substring(0, 80)}${conv.question.length > 80 ? '...' : ''}</div>
-                            <div class="history-meta">
-                                <span class="history-time">${new Date(conv.created_at).toLocaleString('zh-CN')}</span>
-                                <span class="history-method">${conv.reasoning_method}</span>
-                                <span class="history-status status-${conv.status}">${getStatusText(conv.status)}</span>
-                            </div>
-                        </div>
-                    `).join('');
+                return new Date(value).toLocaleString('zh-CN', {
+                    hour12: false,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            } catch (error) {
+                return value;
+            }
+        };
+
+        async function loadHistory(page = 1) {
+            const targetPage = Math.max(1, Number(page) || 1);
+
+            if (isHistoryLoading) {
+                pendingHistoryPage = targetPage;
+                return;
+            }
+
+            isHistoryLoading = true;
+            const historyList = document.getElementById('history-list');
+            const paginationBar = document.getElementById('history-pagination');
+            if (!historyList || !paginationBar) return;
+
+            historyList.innerHTML = '<div class="history-loading">加载历史记录中...</div>';
+            paginationBar.innerHTML = '';
+
+            try {
+                const response = await fetch(`/history?page=${targetPage}&per_page=10`);
+                if (!response.ok) {
+                    throw new Error('响应异常');
                 }
-                
-                // 更新分页信息
-                document.getElementById('page-info').textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
-                document.getElementById('prev-page').disabled = currentPage <= 1;
-                document.getElementById('next-page').disabled = currentPage >= totalPages;
-                
+                const data = await response.json();
+
+                currentPage = data.current_page || targetPage;
+                totalPages = data.pages || 1;
+
+                const conversations = data.conversations || [];
+                if (!conversations.length) {
+                    historyList.innerHTML = '<div class="no-history">暂无对话记录</div>';
+                } else {
+                    historyList.innerHTML = '';
+                    conversations.forEach((conv) => {
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        item.onclick = () => loadConversation(conv.id);
+
+                        const questionPreview = escapeHtml(truncateText(conv.question || '（无问题文本）'));
+                        const methodLabel = escapeHtml(conv.reasoning_method || '默认方法');
+                        const status = conv.status || 'pending';
+                        const statusClass = `status-${status}`;
+
+                        item.innerHTML = `
+                            <div class="history-question">${questionPreview}</div>
+                            <div class="history-meta">
+                                <span class="history-time">${formatDateTime(conv.created_at)}</span>
+                                <span class="history-method">${methodLabel}</span>
+                                <span class="history-status ${statusClass}">${getStatusText(status)}</span>
+                            </div>
+                        `;
+
+                        const actions = document.createElement('div');
+                        actions.className = 'history-actions';
+
+                        const viewBtn = document.createElement('button');
+                        viewBtn.type = 'button';
+                        viewBtn.className = 'history-action-btn';
+                        viewBtn.textContent = '查看详情';
+                        viewBtn.onclick = (event) => {
+                            event.stopPropagation();
+                            loadConversation(conv.id);
+                        };
+
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.type = 'button';
+                        deleteBtn.className = 'history-action-btn danger';
+                        deleteBtn.textContent = '删除记录';
+                        deleteBtn.onclick = (event) => deleteConversation(conv.id, event);
+
+                        actions.appendChild(viewBtn);
+                        actions.appendChild(deleteBtn);
+                        item.appendChild(actions);
+
+                        historyList.appendChild(item);
+                    });
+                }
+
+                renderHistoryPagination(currentPage, totalPages);
             } catch (error) {
                 console.error('加载历史记录失败:', error);
-                document.getElementById('history-container').innerHTML = '<div class="error">加载失败，请重试</div>';
+                historyList.innerHTML = '<div class="history-error">加载历史记录失败，请稍后重试</div>';
+            } finally {
+                isHistoryLoading = false;
+                if (pendingHistoryPage !== null) {
+                    const nextPage = pendingHistoryPage;
+                    pendingHistoryPage = null;
+                    loadHistory(nextPage);
+                }
             }
         }
 
-        // 加载特定对话
+        function renderHistoryPagination(current, total) {
+            const container = document.getElementById('history-pagination');
+            if (!container) return;
+
+            container.innerHTML = '';
+            if (total <= 1) {
+                container.innerHTML = '<span class="history-page-info">共 1 页</span>';
+                return;
+            }
+
+            const createButton = (label, targetPage, disabled = false) => {
+                const btn = document.createElement('button');
+                btn.textContent = label;
+                btn.disabled = disabled;
+                btn.onclick = () => loadHistory(targetPage);
+                btn.className = 'history-btn';
+                return btn;
+            };
+
+            container.appendChild(createButton('上一页', Math.max(1, current - 1), current <= 1));
+
+            const pageInfo = document.createElement('span');
+            pageInfo.className = 'history-page-info';
+            pageInfo.textContent = `第 ${current} / ${total} 页`;
+            container.appendChild(pageInfo);
+
+            container.appendChild(createButton('下一页', Math.min(total, current + 1), current >= total));
+        }
+
         async function loadConversation(conversationId) {
             try {
                 const response = await fetch(`/history/${conversationId}`);
+                if (!response.ok) {
+                    throw new Error('对话加载失败');
+                }
                 const conversation = await response.json();
-                
-                // 在输入框中显示问题
-                document.getElementById('question').value = conversation.question;
-                
-                // 在输出区域显示答案
+
+                const questionInput = document.getElementById('question');
+                if (questionInput) {
+                    questionInput.value = conversation.question || '';
+                    questionInput.dispatchEvent(new Event('input'));
+                }
+
                 const rawOutput = document.getElementById('raw-output');
-                if (conversation.answer) {
+                const answerText = (conversation.answer || '').trim();
+                const fallbackRaw = (conversation.raw_output || '').trim();
+                const statusLabel = getStatusText(conversation.status);
+
+                const metaInfo = `时间: ${formatDateTime(conversation.created_at)} | 方法: ${escapeHtml(conversation.reasoning_method || '默认方法')} | 模型: ${escapeHtml(conversation.model || '未知模型')} | 状态: ${statusLabel}`;
+
+                if (answerText) {
                     rawOutput.innerHTML = `
                         <div class="conversation-replay">
                             <h3>历史对话回放</h3>
                             <div class="replay-question">
-                                <strong>问题：</strong>${conversation.question}
+                                <strong>问题：</strong>${escapeHtml(conversation.question || '')}
                             </div>
                             <div class="replay-answer">
                                 <strong>回答：</strong>
-                                <pre>${conversation.answer}</pre>
+                                <pre>${escapeHtml(answerText)}</pre>
                             </div>
-                            <div class="replay-meta">
-                                时间: ${new Date(conversation.created_at).toLocaleString('zh-CN')} | 
-                                方法: ${conversation.reasoning_method} | 
-                                模型: ${conversation.model}
-                            </div>
+                            <div class="replay-meta">${metaInfo}</div>
                         </div>
                     `;
-                    
-                    // 如果有可视化数据，也显示出来
-                    if (conversation.visualization_data) {
-                        displayVisualization(conversation.visualization_data);
-                    }
+                } else if (fallbackRaw) {
+                    rawOutput.innerHTML = `
+                        <div class="conversation-replay empty-answer">
+                            <h3>历史对话回放</h3>
+                            <div class="replay-question">
+                                <strong>问题：</strong>${escapeHtml(conversation.question || '')}
+                            </div>
+                            <div class="replay-answer">
+                                <strong>原始输出：</strong>
+                                <pre>${escapeHtml(fallbackRaw)}</pre>
+                            </div>
+                            <div class="replay-meta">${metaInfo}</div>
+                        </div>
+                    `;
+                    showInfo('该记录没有结构化回答，已展示原始输出。');
+                } else {
+                    rawOutput.innerHTML = `
+                        <div class="conversation-replay empty-answer">
+                            <h3>历史对话回放</h3>
+                            <div class="replay-question">
+                                <strong>问题：</strong>${escapeHtml(conversation.question || '')}
+                            </div>
+                            <div class="replay-meta">${metaInfo}</div>
+                            <p style="margin-top:12px; color:#b45309;">该记录未保存回答内容，建议重新发起推理。</p>
+                        </div>
+                    `;
+                    showInfo('该历史记录没有保存回答内容，可尝试重新提问。');
                 }
-                
+
+                if (conversation.visualization_data && conversation.visualization_data.code) {
+                    displayVisualization(conversation.visualization_data);
+                } else {
+                    clearVisualization();
+                }
             } catch (error) {
                 console.error('加载对话失败:', error);
-                alert('加载对话失败，请重试');
+                showError('加载对话失败，请稍后重试');
             }
         }
 
-        // 获取状态文本
         function getStatusText(status) {
-            switch (status) {
-                case 'completed': return '已完成';
-                case 'failed': return '失败';
-                case 'pending': return '处理中';
-                default: return status;
+            switch ((status || '').toLowerCase()) {
+                case 'completed':
+                    return '已完成';
+                case 'failed':
+                    return '失败';
+                case 'processing':
+                case 'pending':
+                    return '处理中';
+                default:
+                    return status || '未知状态';
             }
         }
 
-        // Event listeners
+        async function deleteConversation(conversationId, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+
+            if (!window.confirm('确定要删除这条记录吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/history/${conversationId}/delete`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('记录已删除');
+                    loadHistory(currentPage);
+                } else {
+                    showError('删除失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('删除对话失败:', error);
+                showError('删除失败，请稍后重试');
+            }
+        }
+
         document.getElementById('reasoning-method').addEventListener('change', function() {
             handleMethodChange(this.value);
         });
 
-        // Auto-resize textarea
-        document.getElementById('question').addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-
-        // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'Enter') {
                 processQuestion();
             }
         });
 
-        // Mouse wheel zoom for visualization
         document.querySelector('.visualization-wrapper').addEventListener('wheel', function(e) {
             if (window.isZoomLocked) {
                 e.preventDefault();
                 return;
             }
-            
+
             if (e.ctrlKey) {
                 e.preventDefault();
                 const delta = e.deltaY > 0 ? -0.1 : 0.1;
@@ -1479,7 +1774,6 @@
             }
         });
 
-        // Auto-resize question input
         function autoResizeQuestion() {
             const textarea = document.getElementById('question');
             const buttons = document.querySelector('.search-buttons');
@@ -1487,128 +1781,31 @@
 
             const adjustHeight = () => {
                 textarea.style.height = 'auto';
-                const newHeight = Math.min(Math.max(textarea.scrollHeight, 80), 260);
-                textarea.style.height = newHeight + 'px';
+                const newHeight = Math.min(Math.max(textarea.scrollHeight, 96), 240);
+                textarea.style.height = `${newHeight}px`;
 
-                const willWrapButtons = newHeight > 160;
+                const willWrapButtons = newHeight > 180;
                 if (buttons) {
                     buttons.classList.toggle('buttons-wrap', willWrapButtons);
                 }
             };
 
-            textarea.addEventListener('input', adjustHeight);
+            if (!textarea.dataset.autoresizeBound) {
+                textarea.addEventListener('input', adjustHeight);
+                textarea.dataset.autoresizeBound = 'true';
+            }
+
             adjustHeight();
         }
 
-        // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
             autoResizeQuestion();
-
             initializeConfig();
             loadHistory(1);
             updateZoomDisplay();
         });
 
-        // Prevent zoom lock on page load
         window.isZoomLocked = false;
-
-        async function loadHistory(page = 1) {
-        const historyList = document.getElementById('history-list');
-        historyList.innerHTML = '<div class="history-loading">加载历史记录中...</div>';
-        
-        try {
-            const response = await fetch(`/history?page=${page}`);
-            const result = await response.json();
-            
-            if (result.conversations && result.conversations.length > 0) {
-                historyList.innerHTML = '';
-                
-                result.conversations.forEach(conv => {
-                    const item = document.createElement('div');
-                    item.className = 'history-item';
-                    item.onclick = () => loadConversation(conv.id);
-                    
-                    // 截断长问题
-                    let shortQuestion = conv.question;
-                    if (shortQuestion.length > 80) {
-                        shortQuestion = shortQuestion.substring(0, 80) + '...';
-                    }
-                    
-                    item.innerHTML = `
-                        <div class="question">${shortQuestion}</div>
-                        <div class="meta">
-                            <span>${new Date(conv.created_at).toLocaleString('zh-CN')}</span>
-                            <span>${conv.reasoning_method || '默认方法'}</span>
-                            <button class="delete-btn" onclick="deleteConversation(${conv.id}, event)">删除</button>
-                        </div>
-                    `;
-                    historyList.appendChild(item);
-                });
-                
-                // 生成分页控件
-                generatePagination(result.current_page, result.pages);
-            } else {
-                historyList.innerHTML = '<div class="no-history">暂无历史记录</div>';
-            }
-        } catch (error) {
-            console.error('加载历史记录失败:', error);
-            historyList.innerHTML = '<div class="history-error">加载历史记录失败，请重试</div>';
-        }
-    }
-    
-    // 生成分页控件
-    function generatePagination(currentPage, totalPages) {
-        const paginationContainer = document.getElementById('history-pagination');
-        paginationContainer.innerHTML = '';
-        
-        // 只显示前5页、当前页附近和后5页
-        for (let i = 1; i <= totalPages; i++) {
-            if (i <= 5 || Math.abs(i - currentPage) <= 2 || i > totalPages - 5) {
-                const btn = document.createElement('button');
-                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-                btn.textContent = i;
-                btn.onclick = () => loadHistory(i);
-                paginationContainer.appendChild(btn);
-            } else if (i === 6 || i === totalPages - 4) {
-                const ellipsis = document.createElement('span');
-                ellipsis.textContent = '...';
-                ellipsis.style.margin = '0 5px';
-                paginationContainer.appendChild(ellipsis);
-            }
-        }
-    }
-    
-    // 删除对话
-    async function deleteConversation(conversationId, event) {
-        event.stopPropagation(); // 防止触发查看对话
-        
-        if (!confirm('确定要删除这条记录吗？')) {
-            return;
-        }
-        
-        try {
-            const response = await fetch(`/history/${conversationId}/delete`, {
-                method: 'DELETE'
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                alert('删除成功');
-                loadHistory(); // 重新加载历史记录
-            } else {
-                alert('删除失败: ' + (result.message || '未知错误'));
-            }
-        } catch (error) {
-            console.error('删除对话失败:', error);
-            alert('删除失败，请重试');
-        }
-    }
-    
-    // 页面加载时加载历史记录
-    window.onload = function() {
-        loadHistory(1);
-    };
     </script>
 </body>
 </html>
