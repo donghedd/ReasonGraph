@@ -56,29 +56,29 @@ class BaseAPI(ABC):
             return prompt_format.format(question=question)
         
         # Default format if none provided
-        return f"""Please answer the question using the following format, with each step clearly marked:
+        return f"""请作为专业的中文推理助手，严格按照下列格式作答，务必使用中文输出：
 
-Question: {question}
+问题：{question}
 
-Let's solve this step by step:
+请逐步推理：
 <step number="1">
-[First step of reasoning]
+[第 1 步推理过程]
 </step>
 <step number="2">
-[Second step of reasoning]
+[第 2 步推理过程]
 </step>
 <step number="3">
-[Third step of reasoning]
+[第 3 步推理过程]
 </step>
-... (add more steps as needed)
+...(如有需要可继续添加步骤)
 <answer>
-[Final answer]
+[最终答案（中文）]
 </answer>
 
-Note:
-1. Each step must be wrapped in XML tags <step>
-2. Each step must have a number attribute
-3. The final answer must be wrapped in <answer> tags
+注意：
+1. 每一步必须使用 <step> 标签并包含 number 属性。
+2. 所有推理与结论均需使用自然、准确的中文表述。
+3. 最终答案必须放在 <answer> 标签内，并使用简洁中文总结。
 """
 
     def _handle_error(self, error: Exception, context: str = "") -> None:

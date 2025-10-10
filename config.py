@@ -145,202 +145,177 @@ class GeneralConfig:
 @dataclass
 class PlainTextConfig:
     """Configuration specific to Plain Text method (no visualization)"""
-    name: str = "Plain Text"
-    prompt_format: str = '''{question}'''
-    example_question: str = "Who are you?"
+    name: str = "纯文本"
+    prompt_format: str = '''请用中文直接回答以下问题：
+{question}
+
+请确保推理与最终答案均采用自然流畅的中文表达。'''
+    example_question: str = "请介绍一下你自己？"
 
 @dataclass
 class ChainOfThoughtsConfig:
     """Configuration specific to Chain of Thoughts method"""
-    name: str = "Chain of Thoughts"
-    prompt_format: str = '''Please answer the question using the following format by Chain-of-Thoughts, with each step clearly marked:
+    name: str = "逐步思考"
+    prompt_format: str = '''请作为严谨的中文推理助手，以“逐步思考”(Chain-of-Thoughts) 的格式回答下列问题，所有输出必须为中文：
 
-Question: {question}
+问题：{question}
 
-Let's solve this step by step:
+请按以下结构输出：
 <step number="1">
-[First step of reasoning]
+[中文推理第 1 步]
 </step>
-... (add more steps as needed)
+<step number="2">
+[中文推理第 2 步]
+</step>
+...(如需更多步骤请继续添加)
 <answer>
-[Final answer]
+[中文最终答案]
 </answer>'''
     example_question: str = "猫娘昨天为了给主人的新项目优化代码，一口气修复了48个bug喵！但是呢，今天因为主人一直在旁边捣乱，一会儿摸摸耳朵一会儿挠挠下巴，让猫娘完全没办法专心嘛……所以只修复了昨天一半数量的bug喵。 那么算一算，猫娘这两天加起来，一共解决了多少个bug呀？"
 
 @dataclass
 class TreeOfThoughtsConfig:
     """Configuration specific to Tree of Thoughts method"""
-    name: str = "Tree of Thoughts"
-    prompt_format: str = '''Please answer the question using Tree of Thoughts reasoning. Consider multiple possible approaches and explore their consequences. Feel free to create as many branches and sub-branches as needed for thorough exploration. Use the following format:
+    name: str = "思维树"
+    prompt_format: str = '''请使用 Tree of Thoughts（思维树）进行中文推理，全面探索不同思路并输出结构化结果：
 
-Question: {question}
+问题：{question}
 
-Let's explore different paths of reasoning:
+请按以下 XML 结构输出：
 <node id="root">
-[Initial analysis of the problem]
+[中文初步分析]
 </node>
 
-[Add main approaches with unique IDs (approach1, approach2, etc.)]
 <node id="approach1" parent="root">
-[First main approach to solve the problem]
+[中文描述第一种主要思路]
 </node>
 
-[For each approach, add as many sub-branches as needed using parent references]
 <node id="approach1.1" parent="approach1">
-[Exploration of a sub-path]
+[中文描述该思路的进一步推演]
 </node>
 
-[Continue adding nodes and exploring paths as needed. You can create deeper levels by extending the ID pattern (e.g., approach1.1.1)]
+...(可继续添加更多分支，ID 需唯一并正确标注父节点)
 
 <answer>
-Based on exploring all paths:
-- [Explain which path(s) led to the best solution and why]
-- [State the final answer]
+基于上述全部分支的中文综合结论：
+- [说明最优路径及原因]
+- [给出中文最终答案]
 </answer>'''
-    example_question: str = "Using the numbers 3, 3, 8, and 8, find a way to make exactly 24 using basic arithmetic operations (addition, subtraction, multiplication, division). Each number must be used exactly once, and you can use parentheses to control the order of operations."
+    example_question: str = "使用数字 3、3、8、8 以及加减乘除各一次，如何通过合理括号运算得到 24？"
 
 @dataclass
 class LeastToMostConfig:
     """Configuration specific to Least-to-Most method"""
-    name: str = "Least to Most"
-    prompt_format: str = '''Please solve this question using the Least-to-Most approach. First break down the complex question into simpler sub-questions, then solve them in order from simplest to most complex.
+    name: str = "由易到难"
+    prompt_format: str = '''请使用 “由易到难”(Least-to-Most) 的中文方法解决下列问题：先拆解为若干子问题，再按难度逐步求解。
 
-Question: {question}
+问题：{question}
 
-Let's solve this step by step:
+请按照以下结构输出：
 <step number="1">
-<question>[First sub-question - should be the simplest]</question>
-<reasoning>[Reasoning process for this sub-question]</reasoning>
-<answer>[Answer to this sub-question]</answer>
+<question>[中文描述最简单的子问题]</question>
+<reasoning>[中文推理过程]</reasoning>
+<answer>[该子问题的中文答案]</answer>
 </step>
-... (add more steps as needed)
+...(如需更多步骤请继续添加)
 <final_answer>
-[Final answer that combines the insights from all steps]
+[综合所有步骤所得的中文最终答案]
 </final_answer>'''
-    example_question: str = "How to create a personal website?"
+    example_question: str = "如何创建一个个人网站？"
 
 @dataclass
 class SelfRefineConfig:
     """Configuration specific to Self-Refine method"""
-    name: str = "Self-Refine"
-    prompt_format: str = '''Please solve this question step by step, then check your work and revise any mistakes. Use the following format:
+    name: str = "自我修订"
+    prompt_format: str = '''请分两个阶段完成中文推理与自我修订：
 
-Question: {question}
+问题：{question}
 
-Let's solve this step by step:
+第一阶段（初稿）：
 <step number="1">
-[First step of reasoning]
+[中文推理第 1 步]
 </step>
-... (add more steps as needed)
+...(如需更多步骤请继续添加)
 <answer>
-[Initial answer]
+[中文初始答案]
 </answer>
 
-Now, let's check our work:
+第二阶段（复核与优化）：
 <revision_check>
-[Examine each step for errors or improvements]
+- [逐条审查潜在问题或改进点，使用中文描述]
+- [给出中文修订意见与理由]
 </revision_check>
 
-[If any revisions are needed, add revised steps:]
-<revised_step number="[new_step_number]" revises="[original_step_number]">
-[Corrected reasoning]
+<revised_step number="[新步骤编号]" revises="[被修订步骤编号]">
+[中文修订后的推理内容]
 </revised_step>
-... (add more revised steps if needed)
+...(如需更多修订步骤请继续添加)
 
-[If the answer changes, add the revised answer:]
 <revised_answer>
-[Updated final answer]
+[若答案更新，请在此给出最终中文答案；否则说明保持不变]
 </revised_answer>'''
-    example_question: str = "Write a one sentence fiction and then improve it after refine."
+    example_question: str = "写一句科幻短句，并在自我修订后给出更精彩的版本。"
 
 @dataclass
 class SelfConsistencyConfig:
     """Configuration specific to Self-consistency method"""
-    name: str = "Self-consistency"
-    prompt_format: str = '''Please solve the question using multiple independent reasoning paths. Generate 3 different Chain-of-Thought solutions and provide the final answer based on majority voting.
+    name: str = "多路径自洽"
+    prompt_format: str = '''请使用 Self-Consistency（自洽投票）策略，生成 3 条彼此独立的中文推理路径，并通过多数投票确定最终答案。
 
-Question: {question}
+问题：{question}
 
-Path 1:
+路径 1：
 <step number="1">
-[First step of reasoning]
+[中文推理步骤]
 </step>
-... (add more steps as needed)
+...(如需更多步骤请继续添加)
 <answer>
-[Path 1's answer]
+[路径 1 的中文结论]
 </answer>
 
-Path 2:
-... (repeat the same format for all 3 paths)
+路径 2：
+...(结构同上)
 
-Note: Each path should be independent and may arrive at different answers. The final answer will be determined by majority voting.'''
-    example_question: str = "How many r are there in strawberrrrrrrrry?"
+路径 3：
+...(结构同上)
+
+请确保三条路径相互独立，可给出不同结论；最终答案由中文多数票决定，并在总结部分明确写出。'''
+    example_question: str = "单词 strawberrrrrrrrry 中包含多少个字母 r？"
 
 @dataclass
 class BeamSearchConfig:
     """Configuration specific to Beam Search method"""
-    name: str = "Beam Search"
-    prompt_format: str = '''Please solve this question using Beam Search reasoning. For each step:
-1. Explore multiple paths fully regardless of intermediate scores
-2. Assign a score between 0 and 1 to each node based on how promising that step is
-3. Calculate path_score for each result by summing scores along the path from root to result
-4. The final choice will be based on the highest cumulative path score
+    name: str = "束搜索"
+    prompt_format: str = '''请使用 Beam Search（束搜索）策略完成中文推理。请为每个节点提供 0~1 的评分，并计算 path_score（从根节点到当前节点的累积得分）。
 
-Question: {question}
+问题：{question}
 
-<node id="root" score="[score]">
-[Initial analysis - Break down the key aspects of the problem]
+<node id="root" score="[评分]">
+[中文初步分析，拆解核心问题]
 </node>
 
-# First approach branch
-<node id="approach1" parent="root" score="[score]">
-[First approach - Outline the general strategy]
+# 分支示例
+<node id="approach1" parent="root" score="[评分]">
+[中文描述第一种主要策略]
 </node>
 
-<node id="impl1.1" parent="approach1" score="[score]">
-[Implementation 1.1 - Detail the specific steps and methods]
+<node id="impl1.1" parent="approach1" score="[评分]">
+[中文阐述该策略的具体实施步骤]
 </node>
 
-<node id="result1.1" parent="impl1.1" score="[score]" path_score="[sum of scores from root to here]">
-[Result 1.1 - Describe concrete outcome and effectiveness]
+<node id="result1.1" parent="impl1.1" score="[评分]" path_score="[累积得分]">
+[中文说明该路径的结果与影响]
 </node>
 
-<node id="impl1.2" parent="approach1" score="[score]">
-[Implementation 1.2 - Detail alternative steps and methods]
-</node>
-
-<node id="result1.2" parent="impl1.2" score="[score]" path_score="[sum of scores from root to here]">
-[Result 1.2 - Describe concrete outcome and effectiveness]
-</node>
-
-# Second approach branch
-<node id="approach2" parent="root" score="[score]">
-[Second approach - Outline an alternative general strategy]
-</node>
-
-<node id="impl2.1" parent="approach2" score="[score]">
-[Implementation 2.1 - Detail the specific steps and methods]
-</node>
-
-<node id="result2.1" parent="impl2.1" score="[score]" path_score="[sum of scores from root to here]">
-[Result 2.1 - Describe concrete outcome and effectiveness]
-</node>
-
-<node id="impl2.2" parent="approach2" score="[score]">
-[Implementation 2.2 - Detail alternative steps and methods]
-</node>
-
-<node id="result2.2" parent="impl2.2" score="[score]" path_score="[sum of scores from root to here]">
-[Result 2.2 - Describe concrete outcome and effectiveness]
-</node>
+...(根据需要继续添加新的分支与节点，确保正确维护 parent、score 与 path_score 属性)
 
 <answer>
-Best path (path_score: [highest_path_score]):
-[Identify the path with the highest cumulative score]
-[Explain why this path is most effective]
-[Provide the final synthesized solution]
+最佳路径（path_score: [最高累积得分]）：
+- [指出得分最高的路径编号]
+- [中文说明该路径为何最优]
+- [输出最终的中文解决方案]
 </answer>'''
-    example_question: str = "Give me two suggestions for transitioning from a journalist to a book editor?"
+    example_question: str = "从记者转型为图书编辑有哪些高可行性的路径？请结合评分给出最佳建议。"
 
 class ReasoningConfig:
     """Main configuration class that manages both general and method-specific configs"""

@@ -1,11 +1,13 @@
 import logging
 import os
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from functools import wraps
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_migrate import Migrate
-from datetime import datetime
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import json
+from sqlalchemy import or_
 
 from database_config import DatabaseConfig
 from models import db, User, Conversation, ConversationTag, UserSession, create_indexes
@@ -95,6 +97,24 @@ def extract_answer_from_result(result):
     return result.raw_output
 
 
+def admin_required(func):
+    """装饰器：仅允许管理员访问"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return login_manager.unauthorized()
+
+        if not getattr(current_user, 'is_admin', False):
+            if request.accept_mimetypes.best == 'application/json' or request.is_json:
+                return jsonify({'success': False, 'error': '仅限管理员访问'}), 403
+            abort(403)
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 METHOD_DESCRIPTIONS = {
     'cot': '逐步拆解问题，适合大多数一般推理任务',
     'tot': '树状探索多条路径，适用于开放式与复杂分析题',
@@ -156,13 +176,30 @@ def get_history():
     """获取用户的历史对话记录"""
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
-    
-    pagination = Conversation.query.filter_by(user_id=current_user.id)\
-        .order_by(Conversation.created_at.desc())\
+    search = (request.args.get('q') or '').strip()
+
+    page = max(page, 1)
+    per_page = max(1, min(per_page, 50))
+
+    query = Conversation.query.filter_by(user_id=current_user.id)
+
+    if search:
+        like_pattern = f"%{search}%"
+        query = query.filter(
+            or_(
+                Conversation.question.ilike(like_pattern),
+                Conversation.answer.ilike(like_pattern),
+                Conversation.raw_output.ilike(like_pattern),
+                Conversation.error_message.ilike(like_pattern),
+                Conversation.model.ilike(like_pattern)
+            )
+        )
+
+    pagination = query.order_by(Conversation.created_at.desc())\
         .paginate(page=page, per_page=per_page, error_out=False)
-    
+
     conversations = pagination.items
-    
+
     return jsonify({
         'conversations': [conv.to_dict() for conv in conversations],
         'total': pagination.total,
@@ -206,36 +243,167 @@ def delete_conversation(conversation_id):
         return jsonify({'success': False, 'message': '删除对话失败'})
 
 @app.route('/register', methods=['GET', 'POST'])
+@login_required
+@admin_required
 def register():
-    """用户注册"""
+    """仅管理员可创建新用户"""
     if request.method == 'POST':
-        data = request.get_json()
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-        
+        data = request.get_json(silent=True) or {}
+        username = (data.get('username') or '').strip()
+        email = (data.get('email') or '').strip()
+        password = (data.get('password') or '').strip()
+
         if not all([username, email, password]):
-            return jsonify({'success': False, 'message': '所有字段都是必填的'})
-        
+            return jsonify({'success': False, 'message': '用户名、邮箱和密码均为必填项'}), 400
+
         if User.query.filter_by(username=username).first():
-            return jsonify({'success': False, 'message': '用户名已存在'})
-        
+            return jsonify({'success': False, 'message': '用户名已存在'}), 409
+
         if User.query.filter_by(email=email).first():
-            return jsonify({'success': False, 'message': '邮箱已被注册'})
-        
+            return jsonify({'success': False, 'message': '邮箱已被使用'}), 409
+
         user = User(username=username, email=email)
         user.set_password(password)
-        
+
         try:
             db.session.add(user)
             db.session.commit()
-            return jsonify({'success': True, 'message': '注册成功'})
+            logger.info("管理员 %s 创建用户 %s", current_user.username, username)
+            return jsonify({'success': True, 'message': '用户创建成功'}), 201
         except Exception as e:
             db.session.rollback()
             logger.error(f"Registration error: {str(e)}")
-            return jsonify({'success': False, 'message': '注册失败，请重试'})
-    
-    return render_template('register.html')
+            return jsonify({'success': False, 'message': '创建失败，请稍后重试'}), 500
+
+    return render_template('register.html', admin=current_user)
+
+@app.route('/admin/dashboard')
+@login_required
+@admin_required
+def admin_dashboard():
+    """管理员控制台"""
+    provider_options = [
+        {
+            'id': provider_id,
+            'name': general_config.provider_display_names.get(provider_id, provider_id)
+        }
+        for provider_id in general_config.providers
+    ]
+
+    method_options = [
+        {
+            'id': method_id,
+            'name': reasoning_config.methods[method_id].name
+        }
+        for method_id in reasoning_config.methods
+    ]
+
+    return render_template(
+        'admin_dashboard.html',
+        admin=current_user,
+        provider_options=provider_options,
+        method_options=method_options
+    )
+
+
+@app.route('/admin/users', methods=['GET'])
+@login_required
+@admin_required
+def admin_users():
+    """管理员查看用户列表"""
+    search = (request.args.get('q') or '').strip()
+
+    query = User.query.order_by(User.created_at.desc())
+    if search:
+        like_pattern = f"%{search}%"
+        query = query.filter(or_(User.username.ilike(like_pattern), User.email.ilike(like_pattern)))
+
+    users = [user.to_dict() for user in query.all()]
+    return jsonify({'success': True, 'users': users})
+
+
+@app.route('/admin/history', methods=['GET'])
+@login_required
+@admin_required
+def admin_history():
+    """管理员全量搜索历史记录"""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    per_page = max(1, min(per_page, 50))
+    page = max(page, 1)
+
+    keyword = (request.args.get('q') or '').strip()
+    username = (request.args.get('username') or '').strip()
+    status = (request.args.get('status') or '').strip()
+    provider = (request.args.get('provider') or '').strip()
+    model = (request.args.get('model') or '').strip()
+    method = (request.args.get('method') or '').strip()
+    start_date = (request.args.get('start') or '').strip()
+    end_date = (request.args.get('end') or '').strip()
+
+    query = Conversation.query.join(User)
+
+    if keyword:
+        like_pattern = f"%{keyword}%"
+        query = query.filter(
+            or_(
+                Conversation.question.ilike(like_pattern),
+                Conversation.answer.ilike(like_pattern),
+                Conversation.raw_output.ilike(like_pattern),
+                Conversation.error_message.ilike(like_pattern)
+            )
+        )
+
+    if username:
+        query = query.filter(User.username.ilike(f"%{username}%"))
+
+    if status:
+        query = query.filter(Conversation.status == status)
+
+    if provider:
+        query = query.filter(Conversation.api_provider == provider)
+
+    if model:
+        query = query.filter(Conversation.model == model)
+
+    if method:
+        query = query.filter(Conversation.reasoning_method == method)
+
+    if start_date:
+        try:
+            start_dt = datetime.fromisoformat(start_date)
+            query = query.filter(Conversation.created_at >= start_dt)
+        except ValueError:
+            logger.warning("无效开始日期: %s", start_date)
+
+    if end_date:
+        try:
+            end_dt = datetime.fromisoformat(end_date)
+            # 包含当天需加一天
+            query = query.filter(Conversation.created_at < end_dt + timedelta(days=1))
+        except ValueError:
+            logger.warning("无效结束日期: %s", end_date)
+
+    pagination = query.order_by(Conversation.created_at.desc())\
+        .paginate(page=page, per_page=per_page, error_out=False)
+
+    conversations = []
+    for conv in pagination.items:
+        data = conv.to_dict()
+        if conv.user:
+            data['username'] = conv.user.username
+            data['email'] = conv.user.email
+        conversations.append(data)
+
+    return jsonify({
+        'success': True,
+        'conversations': conversations,
+        'total': pagination.total,
+        'pages': pagination.pages,
+        'current_page': pagination.page,
+        'per_page': pagination.per_page
+    })
+
 
 @app.route('/logout')
 @login_required

@@ -72,6 +72,7 @@
         
         .back-link {
             display: inline-block;
+            margin-right: 16px;
             margin-bottom: 20px;
             color: #667eea;
             text-decoration: none;
@@ -85,6 +86,9 @@
 <body>
     <div class="profile-container">
         <a href="{{ url_for('index') }}" class="back-link">← 返回主页</a>
+        {% if user.is_admin %}
+            <a href="{{ url_for('admin_dashboard') }}" class="back-link">← 管理中心</a>
+        {% endif %}
         
         <div class="profile-header">
             <h1>个人中心</h1>

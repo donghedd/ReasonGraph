@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>ReasonGraph 管理中心</title>
+    <link rel="icon" href="{{ url_for('static', filename='assets/idea.png') }}" type="image/x-icon">
+    <style>
+        :root {
+            color-scheme: light;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f3f4f6;
+            color: #1f2937;
+        }
+
+        .admin-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 24px 80px;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .admin-header h1 {
+            margin: 0;
+            font-weight: 400;
+            font-size: 30px;
+            color: #111827;
+        }
+
+        .admin-header p {
+            margin: 6px 0 0;
+            color: #4b5563;
+            font-size: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header-link {
+            padding: 10px 16px;
+            border-radius: 28px;
+            text-decoration: none;
+            border: 1px solid #c7d2fe;
+            color: #4338ca;
+            background: rgba(99, 102, 241, 0.08);
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .header-link:hover {
+            background: rgba(99, 102, 241, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 12px 32px -20px rgba(15, 23, 42, 0.25);
+            margin-bottom: 24px;
+        }
+
+        .card h2 {
+            margin: 0 0 18px;
+            font-size: 22px;
+            font-weight: 500;
+            color: #1f2937;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .input, .select {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #dbeafe;
+            background: #f8fafc;
+            font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input:focus, .select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+            background: #ffffff;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 999px;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #ffffff;
+            box-shadow: 0 12px 24px -18px rgba(99, 102, 241, 0.9);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        thead {
+            background: #eef2ff;
+        }
+
+        th, td {
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-flex;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-admin {
+            background: rgba(99, 102, 241, 0.1);
+            color: #4338ca;
+        }
+
+        .badge-user {
+            background: rgba(59, 130, 246, 0.12);
+            color: #1d4ed8;
+        }
+
+        .badge-status {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge-status.success {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge-status.error {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .history-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .history-pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            gap: 12px;
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        .history-pagination .btn {
+            min-width: 90px;
+        }
+
+        .history-detail {
+            margin-top: 18px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+        }
+
+        .history-detail h3 {
+            margin: 0 0 12px;
+            font-size: 18px;
+        }
+
+        .detail-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+            color: #4b5563;
+            font-size: 13px;
+        }
+
+        .detail-pre {
+            margin: 10px 0 0;
+            padding: 12px;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            max-height: 260px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.55;
+            font-size: 13px;
+        }
+
+        .table-link {
+            color: #4f46e5;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .table-link:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 28px;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .message {
+            margin-bottom: 18px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border-left: 4px solid transparent;
+            display: none;
+        }
+
+        .message.success {
+            background: #ecfdf5;
+            border-color: #10b981;
+            color: #047857;
+            display: block;
+        }
+
+        .message.error {
+            background: #fef2f2;
+            border-color: #ef4444;
+            color: #b91c1c;
+            display: block;
+        }
+
+        .message.info {
+            background: #eef2ff;
+            border-color: #6366f1;
+            color: #3730a3;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                padding: 20px 16px 60px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            table {
+                min-width: 100%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .history-filters {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <div>
+                <h1>ReasonGraph 管理中心</h1>
+                <p>欢迎，{{ admin.username }}（管理员）</p>
+            </div>
+            <div class="header-actions">
+                <a class="header-link" href="{{ url_for('index') }}">返回应用</a>
+                <a class="header-link" href="{{ url_for('logout') }}">退出登录</a>
+            </div>
+        </header>
+
+        <div id="admin-message" class="message"></div>
+
+        <section class="card" id="create-user-card">
+            <h2>创建新用户</h2>
+            <form id="create-user-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="new-username">用户名</label>
+                        <input type="text" id="new-username" class="input" required placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-email">邮箱</label>
+                        <input type="email" id="new-email" class="input" required placeholder="name@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">密码</label>
+                        <input type="password" id="new-password" class="input" required placeholder="设置登录密码">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password-confirm">确认密码</label>
+                        <input type="password" id="new-password-confirm" class="input" required placeholder="再次输入密码">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="create-user-btn">创建用户</button>
+            </form>
+        </section>
+
+        <section class="card" id="user-list-card">
+            <div class="section-header">
+                <h2>用户列表</h2>
+                <div class="section-actions">
+                    <input type="text" id="user-search" class="input" placeholder="搜索用户名或邮箱">
+                    <button type="button" class="btn btn-secondary" id="refresh-users-btn">刷新</button>
+                </div>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            <th>邮箱</th>
+                            <th>用户角色</th>
+                            <th>创建时间</th>
+                            <th>最后登录</th>
+                            <th>总会话数</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table-body">
+                        <tr><td colspan="6" class="empty-state">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="card" id="history-card">
+            <div class="section-header">
+                <h2>历史记录检索</h2>
+            </div>
+
+            <div class="history-filters">
+                <div class="form-group">
+                    <label for="history-keyword">关键词</label>
+                    <input type="text" id="history-keyword" class="input" placeholder="搜索问题、回答或错误信息">
+                </div>
+                <div class="form-group">
+                    <label for="history-username">用户名</label>
+                    <input type="text" id="history-username" class="input" placeholder="支持模糊匹配">
+                </div>
+                <div class="form-group">
+                    <label for="history-status">状态</label>
+                    <select id="history-status" class="select">
+                        <option value="">全部</option>
+                        <option value="completed">已完成</option>
+                        <option value="failed">失败</option>
+                        <option value="processing">处理中</option>
+                        <option value="pending">待处理</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="history-provider">API 提供商</label>
+                    <select id="history-provider" class="select">
+                        <option value="">全部</option>
+                        {% for provider in provider_options %}
+                            <option value="{{ provider.id }}">{{ provider.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="history-method">推理方法</label>
+                    <select id="history-method" class="select">
+                        <option value="">全部</option>
+                        {% for method in method_options %}
+                            <option value="{{ method.id }}">{{ method.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="history-start">开始日期</label>
+                    <input type="date" id="history-start" class="input">
+                </div>
+                <div class="form-group">
+                    <label for="history-end">结束日期</label>
+                    <input type="date" id="history-end" class="input">
+                </div>
+                <div class="form-group">
+                    <label for="history-per-page">每页条数</label>
+                    <select id="history-per-page" class="select">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="30">30</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-actions">
+                <button type="button" class="btn btn-primary" id="history-search-btn">搜索</button>
+                <button type="button" class="btn btn-secondary" id="history-reset-btn">重置</button>
+            </div>
+
+            <div class="table-wrapper" style="margin-top:16px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>问题摘要</th>
+                            <th>模型 / 提供商</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <tr><td colspan="7" class="empty-state">等待查询...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="history-pagination" id="history-pagination-bar">
+                <div id="history-page-info">共 0 条记录</div>
+                <div class="history-pagination-actions">
+                    <button type="button" class="btn btn-secondary" id="history-prev-btn">上一页</button>
+                    <button type="button" class="btn btn-secondary" id="history-next-btn">下一页</button>
+                </div>
+            </div>
+
+            <div class="history-detail" id="history-detail">
+                <h3>对话详情</h3>
+                <p style="margin:0; color:#6b7280;">选择一条记录查看详细内容。</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const messageBox = document.getElementById('admin-message');
+
+        const methodOptionsData = {{ method_options | tojson }};
+        const adminMethodMap = {};
+        methodOptionsData.forEach(item => {
+            adminMethodMap[item.id] = item.name;
+        });
+
+        const statusNameMap = {
+            completed: '已完成',
+            failed: '失败',
+            processing: '处理中',
+            pending: '待处理'
+        };
+
+        function showAdminMessage(type, text) {
+            if (!messageBox) return;
+            messageBox.className = 'message ' + (type || 'info');
+            messageBox.textContent = text;
+            if (text) {
+                messageBox.style.display = 'block';
+                clearTimeout(messageBox._timer);
+                messageBox._timer = setTimeout(() => {
+                    messageBox.style.display = 'none';
+                }, type === 'error' ? 6000 : 3600);
+            } else {
+                messageBox.style.display = 'none';
+            }
+        }
+
+        const escapeHtml = (value = '') => {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        };
+
+        /* 用户管理 */
+        let userSearchTerm = '';
+        let userSearchTimer = null;
+        let usersLoading = false;
+        let pendingUserReload = false;
+
+        const userTableBody = document.getElementById('user-table-body');
+        const userSearchInput = document.getElementById('user-search');
+
+        async function loadUsers() {
+            if (usersLoading) {
+                pendingUserReload = true;
+                return;
+            }
+
+            usersLoading = true;
+            if (userTableBody) {
+                userTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">加载中...</td></tr>';
+            }
+
+            try {
+                const params = new URLSearchParams();
+                if (userSearchTerm) {
+                    params.append('q', userSearchTerm);
+                }
+                const response = await fetch(`/admin/users?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error('加载用户失败');
+                }
+                const result = await response.json();
+                renderUserTable(result.users || []);
+            } catch (error) {
+                console.error(error);
+                if (userTableBody) {
+                    userTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">加载失败，请稍后重试</td></tr>';
+                }
+                showAdminMessage('error', error.message || '加载用户列表失败');
+            } finally {
+                usersLoading = false;
+                if (pendingUserReload) {
+                    pendingUserReload = false;
+                    loadUsers();
+                }
+            }
+        }
+
+        function renderUserTable(users) {
+            if (!userTableBody) return;
+            if (!users.length) {
+                userTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">暂无用户数据</td></tr>';
+                return;
+            }
+
+            userTableBody.innerHTML = users.map(user => {
+                const roleBadge = user.is_admin
+                    ? '<span class="badge badge-admin">管理员</span>'
+                    : '<span class="badge badge-user">普通用户</span>';
+
+                const createdAt = user.created_at ? new Date(user.created_at).toLocaleString('zh-CN') : '—';
+                const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString('zh-CN') : '—';
+
+                return `<tr>
+                    <td>${escapeHtml(user.username)}</td>
+                    <td>${escapeHtml(user.email)}</td>
+                    <td>${roleBadge}</td>
+                    <td>${escapeHtml(createdAt)}</td>
+                    <td>${escapeHtml(lastLogin)}</td>
+                    <td>${user.total_conversations ?? 0}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        if (userSearchInput) {
+            userSearchInput.addEventListener('input', () => {
+                if (userSearchTimer) clearTimeout(userSearchTimer);
+                userSearchTerm = userSearchInput.value.trim();
+                userSearchTimer = setTimeout(() => loadUsers(), 300);
+            });
+        }
+
+        const refreshUsersBtn = document.getElementById('refresh-users-btn');
+        if (refreshUsersBtn) {
+            refreshUsersBtn.addEventListener('click', () => loadUsers());
+        }
+
+        const createUserForm = document.getElementById('create-user-form');
+        const createUserBtn = document.getElementById('create-user-btn');
+
+        if (createUserForm && createUserBtn) {
+            createUserForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const username = document.getElementById('new-username').value.trim();
+                const email = document.getElementById('new-email').value.trim();
+                const password = document.getElementById('new-password').value;
+                const passwordConfirm = document.getElementById('new-password-confirm').value;
+
+                if (password !== passwordConfirm) {
+                    showAdminMessage('error', '两次输入的密码不一致');
+                    return;
+                }
+
+                createUserBtn.disabled = true;
+                createUserBtn.textContent = '创建中...';
+
+                try {
+                    const response = await fetch('/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ username, email, password })
+                    });
+
+                    const result = await response.json();
+                    if (!response.ok || !result.success) {
+                        throw new Error(result.message || '创建失败');
+                    }
+
+                    createUserForm.reset();
+                    showAdminMessage('success', result.message || '用户创建成功');
+                    loadUsers();
+                } catch (error) {
+                    console.error(error);
+                    showAdminMessage('error', error.message || '创建用户失败');
+                } finally {
+                    createUserBtn.disabled = false;
+                    createUserBtn.textContent = '创建用户';
+                }
+            });
+        }
+
+        /* 历史记录搜索 */
+        let adminHistoryLoading = false;
+        let pendingAdminHistoryPage = null;
+        let adminHistoryPage = 1;
+        const historyCache = {};
+
+        const historyTableBody = document.getElementById('history-table-body');
+        const historyPageInfo = document.getElementById('history-page-info');
+        const historyPrevBtn = document.getElementById('history-prev-btn');
+        const historyNextBtn = document.getElementById('history-next-btn');
+        const historyDetail = document.getElementById('history-detail');
+
+        function collectHistoryFilters() {
+            return {
+                q: document.getElementById('history-keyword')?.value.trim() || '',
+                username: document.getElementById('history-username')?.value.trim() || '',
+                status: document.getElementById('history-status')?.value || '',
+                provider: document.getElementById('history-provider')?.value || '',
+                method: document.getElementById('history-method')?.value || '',
+                start: document.getElementById('history-start')?.value || '',
+                end: document.getElementById('history-end')?.value || '',
+                per_page: document.getElementById('history-per-page')?.value || '20'
+            };
+        }
+
+        async function loadAdminHistory(page = 1) {
+            if (adminHistoryLoading) {
+                pendingAdminHistoryPage = page;
+                return;
+            }
+
+            adminHistoryLoading = true;
+            adminHistoryPage = page;
+
+            if (historyTableBody) {
+                historyTableBody.innerHTML = '<tr><td colspan="7" class="empty-state">加载中...</td></tr>';
+            }
+
+            const filters = collectHistoryFilters();
+            const params = new URLSearchParams({
+                page: String(page),
+                per_page: filters.per_page || '20'
+            });
+
+            ['q', 'username', 'status', 'provider', 'method', 'start', 'end'].forEach(key => {
+                if (filters[key]) {
+                    params.append(key, filters[key]);
+                }
+            });
+
+            try {
+                const response = await fetch(`/admin/history?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error('加载历史记录失败');
+                }
+                const result = await response.json();
+
+                renderAdminHistory(result);
+            } catch (error) {
+                console.error(error);
+                if (historyTableBody) {
+                    historyTableBody.innerHTML = '<tr><td colspan="7" class="empty-state">加载失败，请稍后重试</td></tr>';
+                }
+                showAdminMessage('error', error.message || '加载历史记录失败');
+            } finally {
+                adminHistoryLoading = false;
+                if (pendingAdminHistoryPage !== null) {
+                    const nextPage = pendingAdminHistoryPage;
+                    pendingAdminHistoryPage = null;
+                    loadAdminHistory(nextPage);
+                }
+            }
+        }
+
+        function renderAdminHistory(data) {
+            const conversations = data.conversations || [];
+            const total = data.total || 0;
+            const page = data.current_page || 1;
+            const pages = data.pages || 1;
+
+            if (historyPageInfo) {
+                historyPageInfo.textContent = `共 ${total} 条记录，当前第 ${page} / ${Math.max(pages, 1)} 页`;
+            }
+
+            if (historyPrevBtn) {
+                historyPrevBtn.disabled = page <= 1;
+            }
+            if (historyNextBtn) {
+                historyNextBtn.disabled = page >= pages;
+            }
+
+            if (!historyTableBody) return;
+
+            if (!conversations.length) {
+                historyTableBody.innerHTML = '<tr><td colspan="7" class="empty-state">未找到匹配的历史记录</td></tr>';
+                if (historyDetail) {
+                    historyDetail.innerHTML = '<h3>对话详情</h3><p style="margin:0; color:#6b7280;">选择一条记录查看详细内容。</p>';
+                }
+                return;
+            }
+
+            Object.keys(historyCache).forEach(key => delete historyCache[key]);
+
+            const rows = conversations.map(conv => {
+                historyCache[conv.id] = conv;
+                const shortQuestion = (conv.question || '').slice(0, 60);
+                const providerLabel = [conv.model, conv.api_provider].filter(Boolean).join(' / ');
+                const methodDisplay = adminMethodMap[conv.reasoning_method] || conv.reasoning_method || '—';
+                const created = conv.created_at ? new Date(conv.created_at).toLocaleString('zh-CN') : '—';
+                const statusBadgeClass = conv.status === 'completed'
+                    ? 'badge-status success'
+                    : conv.status === 'failed'
+                        ? 'badge-status error'
+                        : 'badge-status';
+                const statusLabel = statusNameMap[conv.status] || conv.status || '未知';
+
+                return `<tr>
+                    <td>${conv.id}</td>
+                    <td>${escapeHtml(conv.username || '—')}</td>
+                    <td title="${escapeHtml(conv.question || '')}">${escapeHtml(shortQuestion)}${conv.question && conv.question.length > 60 ? '...' : ''}</td>
+                    <td>${escapeHtml(providerLabel || '—')}<br><span style="color:#6b7280;font-size:12px;">${escapeHtml(methodDisplay)}</span></td>
+                    <td><span class="badge ${statusBadgeClass}">${escapeHtml(statusLabel)}</span></td>
+                    <td>${escapeHtml(created)}</td>
+                    <td><button type="button" class="table-link" data-id="${conv.id}">查看</button></td>
+                </tr>`;
+            });
+
+            historyTableBody.innerHTML = rows.join('');
+
+            if (conversations[0]) {
+                showHistoryDetail(conversations[0].id);
+            }
+        }
+
+        if (historyTableBody) {
+            historyTableBody.addEventListener('click', (event) => {
+                const target = event.target;
+                if (target && target.matches('button[data-id]')) {
+                    const id = target.getAttribute('data-id');
+                    showHistoryDetail(id);
+                }
+            });
+        }
+
+        function showHistoryDetail(id) {
+            const conv = historyCache[id];
+            if (!conv || !historyDetail) {
+                return;
+            }
+
+            const question = conv.question || '—';
+            const answer = conv.answer || '';
+            const rawOutput = conv.raw_output && conv.raw_output !== answer ? conv.raw_output : '';
+            const statusRaw = conv.status || '';
+            const status = statusNameMap[statusRaw] || statusRaw || '未知';
+            const created = conv.created_at ? new Date(conv.created_at).toLocaleString('zh-CN') : '—';
+            const providerLabel = [conv.api_provider, conv.model].filter(Boolean).join(' / ');
+            const methodLabel = adminMethodMap[conv.reasoning_method] || conv.reasoning_method || '—';
+
+            historyDetail.innerHTML = `
+                <h3>对话详情（ID: ${conv.id}）</h3>
+                <div class="detail-meta">
+                    <span>用户：${escapeHtml(conv.username || '—')}</span>
+                    <span>状态：${escapeHtml(status)}</span>
+                    <span>模型：${escapeHtml(providerLabel || '—')}</span>
+                    <span>方法：${escapeHtml(methodLabel)}</span>
+                    <span>Token：${escapeHtml(conv.total_tokens != null ? conv.total_tokens : '—')}</span>
+                    <span>时间：${escapeHtml(created)}</span>
+                </div>
+                <div>
+                    <strong>问题：</strong>
+                    <pre class="detail-pre">${escapeHtml(question)}</pre>
+                </div>
+                <div>
+                    <strong>回答：</strong>
+                    <pre class="detail-pre">${escapeHtml(answer || '未记录回答内容')}</pre>
+                </div>
+                ${rawOutput ? `<div><strong>原始输出：</strong><pre class="detail-pre">${escapeHtml(rawOutput)}</pre></div>` : ''}
+                ${conv.error_message ? `<div><strong>错误信息：</strong><pre class="detail-pre">${escapeHtml(conv.error_message)}</pre></div>` : ''}
+            `;
+        }
+
+        if (historyPrevBtn) {
+            historyPrevBtn.addEventListener('click', () => {
+                if (!historyPrevBtn.disabled) {
+                    loadAdminHistory(Math.max(1, adminHistoryPage - 1));
+                }
+            });
+        }
+
+        if (historyNextBtn) {
+            historyNextBtn.addEventListener('click', () => {
+                if (!historyNextBtn.disabled) {
+                    loadAdminHistory(adminHistoryPage + 1);
+                }
+            });
+        }
+
+        const historySearchBtn = document.getElementById('history-search-btn');
+        if (historySearchBtn) {
+            historySearchBtn.addEventListener('click', () => loadAdminHistory(1));
+        }
+
+        const historyResetBtn = document.getElementById('history-reset-btn');
+        if (historyResetBtn) {
+            historyResetBtn.addEventListener('click', () => {
+                ['history-keyword','history-username','history-status','history-provider','history-method','history-start','history-end'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (el.tagName === 'SELECT') {
+                            el.selectedIndex = 0;
+                        } else {
+                            el.value = '';
+                        }
+                    }
+                });
+                const perPage = document.getElementById('history-per-page');
+                if (perPage) perPage.value = '20';
+                loadAdminHistory(1);
+            });
+        }
+
+        const historyFilters = document.querySelectorAll('#history-card input, #history-card select');
+        historyFilters.forEach(el => {
+            el.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    loadAdminHistory(1);
+                }
+            });
+        });
+
+        // 初始加载
+        loadUsers();
+        loadAdminHistory(1);
+    </script>
+</body>
+</html>

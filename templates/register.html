@@ -127,7 +127,7 @@
     <div class="register-container">
         <div class="register-header">
             <h1>ReasonGraph</h1>
-            <p>创建您的账户</p>
+            <p>管理员通道：创建新用户</p>
         </div>
         
         <div id="message-container"></div>
@@ -157,7 +157,7 @@
         </form>
         
         <div class="login-link">
-            <p>已有账户？ <a href="{{ url_for('login') }}">登录</a></p>
+            <p><a href="{{ url_for('admin_dashboard') }}">返回管理中心</a></p>
         </div>
     </div>
 
@@ -198,9 +198,7 @@
                 
                 if (result.success) {
                     messageContainer.innerHTML = '<div class="success-message">' + result.message + '</div>';
-                    setTimeout(() => {
-                        window.location.href = '/login';
-                    }, 2000);
+                    document.getElementById('register-form').reset();
                 } else {
                     messageContainer.innerHTML = '<div class="error-message">' + result.message + '</div>';
                 }
