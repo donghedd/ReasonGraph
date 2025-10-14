@@ -147,6 +147,24 @@
             transform: none;
         }
 
+        .toggle-group {
+            margin-top: 10px;
+        }
+
+        .toggle-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .toggle-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #6366f1;
+        }
+
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -305,6 +323,23 @@
             font-style: italic;
         }
 
+        .visualization-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .visualization-toggle input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #6366f1;
+        }
+
+        .visualization-toggle span {
+            font-size: 12px;
+            color: #4b5563;
+        }
+
         .message {
             margin-bottom: 18px;
             padding: 14px 18px;
@@ -393,6 +428,12 @@
                         <input type="password" id="new-password-confirm" class="input" required placeholder="再次输入密码">
                     </div>
                 </div>
+                <div class="form-group toggle-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="new-visualization" checked>
+                        <span>允许访问可视化界面</span>
+                    </label>
+                </div>
                 <button type="submit" class="btn btn-primary" id="create-user-btn">创建用户</button>
             </form>
         </section>
@@ -415,10 +456,11 @@
                             <th>创建时间</th>
                             <th>最后登录</th>
                             <th>总会话数</th>
+                            <th>可视化界面</th>
                         </tr>
                     </thead>
                     <tbody id="user-table-body">
-                        <tr><td colspan="6" class="empty-state">加载中...</td></tr>
+                        <tr><td colspan="7" class="empty-state">加载中...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -488,6 +530,7 @@
             <div class="filter-actions">
                 <button type="button" class="btn btn-primary" id="history-search-btn">搜索</button>
                 <button type="button" class="btn btn-secondary" id="history-reset-btn">重置</button>
+                <button type="button" class="btn btn-secondary" id="history-export-btn">导出 Excel</button>
             </div>
 
             <div class="table-wrapper" style="margin-top:16px;">
@@ -581,7 +624,7 @@
 
             usersLoading = true;
             if (userTableBody) {
-                userTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">加载中...</td></tr>';
+                userTableBody.innerHTML = '<tr><td colspan="7" class="empty-state">加载中...</td></tr>';
             }
 
             try {
@@ -598,7 +641,7 @@
             } catch (error) {
                 console.error(error);
                 if (userTableBody) {
-                    userTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">加载失败，请稍后重试</td></tr>';
+                    userTableBody.innerHTML = '<tr><td colspan="7" class="empty-state">加载失败，请稍后重试</td></tr>';
                 }
                 showAdminMessage('error', error.message || '加载用户列表失败');
             } finally {
@@ -613,7 +656,7 @@
         function renderUserTable(users) {
             if (!userTableBody) return;
             if (!users.length) {
-                userTableBody.innerHTML = '<tr><td colspan="6" class="empty-state">暂无用户数据</td></tr>';
+                userTableBody.innerHTML = '<tr><td colspan="7" class="empty-state">暂无用户数据</td></tr>';
                 return;
             }
 
@@ -624,6 +667,12 @@
 
                 const createdAt = user.created_at ? new Date(user.created_at).toLocaleString('zh-CN') : '—';
                 const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString('zh-CN') : '—';
+                const visualizationControl = `
+                    <label class="visualization-toggle" title="${user.show_visualization ? '可视化已启用' : '可视化已禁用'}">
+                        <input type="checkbox" class="toggle-visualization" data-user-id="${user.id}" ${user.show_visualization ? 'checked' : ''}>
+                        <span>${user.show_visualization ? '显示' : '隐藏'}</span>
+                    </label>
+                `;
 
                 return `<tr>
                     <td>${escapeHtml(user.username)}</td>
@@ -632,8 +681,53 @@
                     <td>${escapeHtml(createdAt)}</td>
                     <td>${escapeHtml(lastLogin)}</td>
                     <td>${user.total_conversations ?? 0}</td>
+                    <td>${visualizationControl}</td>
                 </tr>`;
             }).join('');
+
+            userTableBody.querySelectorAll('.toggle-visualization').forEach(toggle => {
+                toggle.addEventListener('change', async () => {
+                    const userId = Number(toggle.dataset.userId);
+                    const label = toggle.nextElementSibling;
+                    const enabled = toggle.checked;
+                    await updateUserVisualization(toggle, label, userId, enabled);
+                });
+            });
+        }
+
+        async function updateUserVisualization(toggleEl, labelEl, userId, enabled) {
+            if (!toggleEl || !labelEl || Number.isNaN(userId)) {
+                return;
+            }
+
+            toggleEl.disabled = true;
+            labelEl.textContent = enabled ? '显示' : '隐藏';
+            toggleEl.parentElement?.setAttribute('title', enabled ? '可视化已启用' : '可视化已禁用');
+
+            try {
+                const response = await fetch(`/admin/users/${userId}/visualization`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ show_visualization: enabled })
+                });
+
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || '更新失败');
+                }
+
+                showAdminMessage('success', `已${enabled ? '启用' : '禁用'}可视化界面`);
+            } catch (error) {
+                console.error(error);
+                toggleEl.checked = !enabled;
+                labelEl.textContent = toggleEl.checked ? '显示' : '隐藏';
+                toggleEl.parentElement?.setAttribute('title', toggleEl.checked ? '可视化已启用' : '可视化已禁用');
+                showAdminMessage('error', error.message || '更新可视化权限失败');
+            } finally {
+                toggleEl.disabled = false;
+            }
         }
 
         if (userSearchInput) {
@@ -660,6 +754,7 @@
                 const email = document.getElementById('new-email').value.trim();
                 const password = document.getElementById('new-password').value;
                 const passwordConfirm = document.getElementById('new-password-confirm').value;
+                const showVisualization = document.getElementById('new-visualization').checked;
 
                 if (password !== passwordConfirm) {
                     showAdminMessage('error', '两次输入的密码不一致');
@@ -675,7 +770,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ username, email, password })
+                        body: JSON.stringify({ username, email, password, show_visualization: showVisualization })
                     });
 
                     const result = await response.json();
@@ -684,6 +779,7 @@
                     }
 
                     createUserForm.reset();
+                    document.getElementById('new-visualization').checked = true;
                     showAdminMessage('success', result.message || '用户创建成功');
                     loadUsers();
                 } catch (error) {
@@ -719,6 +815,44 @@
                 end: document.getElementById('history-end')?.value || '',
                 per_page: document.getElementById('history-per-page')?.value || '20'
             };
+        }
+
+        async function exportAdminHistory(btn) {
+            if (!btn) return;
+
+            const filters = collectHistoryFilters();
+            const params = new URLSearchParams();
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value && !['per_page'].includes(key)) {
+                    params.append(key, value);
+                }
+            });
+
+            btn.disabled = true;
+            const originalText = btn.textContent;
+            btn.textContent = '导出中...';
+
+            try {
+                const response = await fetch(`/admin/history/export?${params.toString()}`);
+                if (!response.ok) {
+                    throw new Error('导出失败');
+                }
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const timestamp = new Date().toISOString().replace(/[:T]/g, '-').split('.')[0];
+                link.href = url;
+                link.download = `reasoning-history-${timestamp}.xlsx`;
+                link.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                showAdminMessage('success', '历史记录已导出');
+            } catch (error) {
+                console.error(error);
+                showAdminMessage('error', error.message || '导出历史记录失败');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
         }
 
         async function loadAdminHistory(page = 1) {
@@ -916,6 +1050,11 @@
                 if (perPage) perPage.value = '20';
                 loadAdminHistory(1);
             });
+        }
+
+        const historyExportBtn = document.getElementById('history-export-btn');
+        if (historyExportBtn) {
+            historyExportBtn.addEventListener('click', () => exportAdminHistory(historyExportBtn));
         }
 
         const historyFilters = document.querySelectorAll('#history-card input, #history-card select');

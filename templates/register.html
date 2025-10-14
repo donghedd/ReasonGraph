@@ -121,6 +121,17 @@
             margin-bottom: 20px;
             border-left: 4px solid #363;
         }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-group input {
+            width: auto;
+            accent-color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -153,6 +164,11 @@
                 <input type="password" id="confirm-password" name="confirm-password" required>
             </div>
             
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="show-visualization" name="show-visualization" checked>
+                <label for="show-visualization" style="margin:0;">允许访问可视化界面</label>
+            </div>
+            
             <button type="submit" class="register-btn" id="register-btn">注册</button>
         </form>
         
@@ -182,7 +198,8 @@
             const formData = {
                 username: document.getElementById('username').value,
                 email: document.getElementById('email').value,
-                password: password
+                password: password,
+                show_visualization: document.getElementById('show-visualization').checked
             };
             
             try {
@@ -199,6 +216,7 @@
                 if (result.success) {
                     messageContainer.innerHTML = '<div class="success-message">' + result.message + '</div>';
                     document.getElementById('register-form').reset();
+                    document.getElementById('show-visualization').checked = true;
                 } else {
                     messageContainer.innerHTML = '<div class="error-message">' + result.message + '</div>';
                 }

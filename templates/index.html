@@ -303,6 +303,55 @@
             color: #495057;
         }
 
+        .column-output h2 {
+            color: #333;
+            margin-bottom: 18px;
+            font-size: 1.4em;
+            font-weight: 500;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .visualization-section {
+            margin-top: 24px;
+            padding: 18px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+        }
+
+        .visualization-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .visualization-header h3 {
+            margin: 0;
+            font-size: 1.15em;
+            color: #1f2937;
+        }
+
+        .visualization-toggle-hint {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .visualization-controls {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .param-group.compact {
+            flex: 1 1 160px;
+            margin-bottom: 0;
+        }
+
         .zoom-controls {
             display: flex;
             align-items: center;
@@ -344,12 +393,23 @@
             position: relative;
         }
 
+        .visualization-wrapper.fullscreen-active {
+            height: 100%;
+        }
+
+        #mermaid-diagram svg {
+            width: 100%;
+            height: auto;
+        }
+
         #mermaid-container {
             padding: 10px;
             min-height: 280px;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .placeholder-visualization {
@@ -430,6 +490,16 @@
         .mermaid {
             padding: 0;
             border-radius: 4px;
+        }
+
+        body.no-visualization .visualization-section {
+            display: none;
+        }
+
+        body.no-visualization .visualization-toggle-hint,
+        body.no-visualization .zoom-controls,
+        body.no-visualization .visualization-wrapper {
+            display: none;
         }
 
         .has-visualization .placeholder-visualization {
@@ -804,7 +874,7 @@
         }
     </style>
 </head>
-<body>
+<body class="{% if not user.show_visualization %}no-visualization{% endif %}" data-show-visualization="{{ 'true' if user.show_visualization else 'false' }}">
     <div class="banner">
         <div class="user-info">
                 {% if current_user.is_authenticated %}
@@ -885,30 +955,36 @@
                 <div class="param-label">最大Token数</div>
                 <input type="number" class="param-input" id="max-tokens">
             </div>
+        </div>
+
+        <div class="column column-output">
+            <h2>提示与结果</h2>
             <div class="param-group">
                 <div class="param-label">提示格式</div>
                 <textarea class="param-input" id="prompt-format" rows="8" placeholder="推理提示格式将根据选择的方法自动填充"></textarea>
             </div>
 
-            <div class="output-section">
+            <div class="output-section result-section">
                 <h3>推理结果</h3>
                 <div class="output-content" id="raw-output">在此处显示推理结果...</div>
             </div>
-        </div>
 
-        <div class="column">
-            <h2>可视化设置</h2>
-            <div class="param-group">
-                <div class="param-label">每行字符数</div>
-                <input type="number" class="param-input" id="chars-per-line">
-            </div>
-            <div class="param-group">
-                <div class="param-label">最大行数</div>
-                <input type="number" class="param-input" id="max-lines">
-            </div>
+            <div class="visualization-section" id="visualization-section">
+                <div class="visualization-header">
+                    <h3>推理可视化</h3>
+                    <div class="visualization-toggle-hint">可调整图形展示参数</div>
+                </div>
+                <div class="visualization-controls">
+                    <div class="param-group compact">
+                        <div class="param-label">每行字符数</div>
+                        <input type="number" class="param-input" id="chars-per-line">
+                    </div>
+                    <div class="param-group compact">
+                        <div class="param-label">最大行数</div>
+                        <input type="number" class="param-input" id="max-lines">
+                    </div>
+                </div>
 
-            <div class="output-section">
-                <h3>可视化结果</h3>
                 <div class="zoom-controls">
                     <button class="zoom-button" onclick="adjustZoom(-0.1)">-</button>
                     <div class="zoom-level" id="zoom-level">100%</div>
@@ -965,6 +1041,7 @@
         const MIN_ZOOM = 0.1;
         const MAX_ZOOM = 3.0;
         let lastMermaidCode = "";
+        let lastSvgDimensions = { width: 0, height: 0 };
         let currentPage = 1;
         let totalPages = 1;
         let isProcessing = false;
@@ -973,6 +1050,7 @@
         let historySearchTerm = '';
         let historySearchDebounce = null;
         let methodNameMap = {};
+        let isVisualizationAllowed = document.body.dataset.showVisualization !== 'false';
 
         // Initialize configuration
         async function initializeConfig() {
@@ -980,6 +1058,16 @@
                 const response = await fetch('/config');
                 const appConfig = await response.json();
                 window.appConfig = appConfig;
+
+                if (appConfig.permissions && typeof appConfig.permissions.show_visualization !== 'undefined') {
+                    isVisualizationAllowed = Boolean(appConfig.permissions.show_visualization);
+                    document.body.dataset.showVisualization = isVisualizationAllowed ? 'true' : 'false';
+                    document.body.classList.toggle('no-visualization', !isVisualizationAllowed);
+                    const visualizationSection = document.getElementById('visualization-section');
+                    if (visualizationSection) {
+                        visualizationSection.style.display = isVisualizationAllowed ? '' : 'none';
+                    }
+                }
 
                 // Populate API providers
                 const apiProviderSelect = document.getElementById('api-provider');
@@ -1397,34 +1485,35 @@
                 return;
             }
 
+            lastMermaidCode = visualizationData.code;
+
+            if (!isVisualizationAllowed) {
+                clearVisualization();
+                return;
+            }
+
             const container = document.getElementById('mermaid-container');
             const diagram = document.getElementById('mermaid-diagram');
-            
-            lastMermaidCode = visualizationData.code;
-            
+
             try {
-                // Clear previous content
                 diagram.innerHTML = '';
-                
-                // Generate unique ID for this diagram
-                const diagramId = 'mermaid-' + Date.now();
-                
-                // Render mermaid diagram
+                const diagramId = `mermaid-${Date.now()}`;
+
                 mermaid.render(diagramId, lastMermaidCode).then(result => {
                     diagram.innerHTML = result.svg;
                     container.classList.add('has-visualization');
-                    
-                    // Apply current zoom level
+
                     const svg = diagram.querySelector('svg');
                     if (svg) {
-                        svg.style.transform = `scale(${currentZoom})`;
-                        svg.style.transformOrigin = 'top left';
+                        currentZoom = 1.0;
+                        normalizeMermaidSvg(svg);
+                        updateZoomDisplay();
+                        applyZoom();
                     }
                 }).catch(error => {
                     console.error('Mermaid rendering error:', error);
                     diagram.innerHTML = '<div class="placeholder-visualization">可视化渲染失败</div>';
                 });
-                
             } catch (error) {
                 console.error('Error displaying visualization:', error);
                 diagram.innerHTML = '<div class="placeholder-visualization">可视化显示失败</div>';
@@ -1433,61 +1522,161 @@
 
         // Visualization controls
         function lockVisualization() {
+            if (!isVisualizationAllowed) return;
             window.isZoomLocked = true;
         }
 
         function unlockVisualization() {
+            if (!isVisualizationAllowed) return;
             window.isZoomLocked = false;
         }
 
         function adjustZoom(delta) {
-            if (window.isZoomLocked) return;
-            
+            if (!isVisualizationAllowed || window.isZoomLocked) return;
+
             currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom + delta));
             updateZoomDisplay();
             applyZoom();
         }
 
         function resetZoom() {
-            if (window.isZoomLocked) return;
-            
+            if (!isVisualizationAllowed || window.isZoomLocked) return;
+
             currentZoom = 1.0;
             updateZoomDisplay();
             applyZoom();
         }
 
         function updateZoomDisplay() {
-            document.getElementById('zoom-level').textContent = Math.round(currentZoom * 100) + '%';
+            const zoomDisplay = document.getElementById('zoom-level');
+            if (zoomDisplay) {
+                zoomDisplay.textContent = Math.round(currentZoom * 100) + '%';
+            }
+        }
+
+        function computeFullScreenScale(svg, container) {
+            if (!svg || !container) return 1;
+            if (!lastSvgDimensions.width || !lastSvgDimensions.height) {
+                captureSvgDimensions(svg, true);
+            }
+            const rect = container.getBoundingClientRect();
+            if (!rect.width || !rect.height) {
+                return 1;
+            }
+            const scaleX = rect.width / (lastSvgDimensions.width || rect.width);
+            const scaleY = rect.height / (lastSvgDimensions.height || rect.height);
+            return Math.min(scaleX, scaleY, 4);
         }
 
         function applyZoom() {
+            if (!isVisualizationAllowed) return;
             const svg = document.querySelector('#mermaid-diagram svg');
-            if (svg) {
-                svg.style.transform = `scale(${currentZoom})`;
-                svg.style.transformOrigin = 'top left';
+            const container = document.getElementById('mermaid-container');
+            if (!svg || !container) return;
+
+            if (!lastSvgDimensions.width || !lastSvgDimensions.height) {
+                captureSvgDimensions(svg, true);
             }
+
+            let scale = currentZoom;
+            if (isFullscreenActive()) {
+                scale *= computeFullScreenScale(svg, container);
+            }
+
+            svg.style.transform = `scale(${scale})`;
+            svg.style.transformOrigin = 'top left';
+        }
+
+        function normalizeMermaidSvg(svg) {
+            const { width, height } = captureSvgDimensions(svg);
+            if (width && height) {
+                svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            }
+            svg.removeAttribute('width');
+            svg.removeAttribute('height');
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            svg.style.width = '100%';
+            svg.style.height = 'auto';
+            svg.style.maxWidth = '100%';
+            svg.style.maxHeight = '100%';
+        }
+
+        function captureSvgDimensions(svg, silent = false) {
+            let width = 0;
+            let height = 0;
+
+            try {
+                const viewBox = svg.getAttribute('viewBox');
+                if (viewBox) {
+                    const parts = viewBox.split(/\s+/).map(Number);
+                    if (parts.length === 4) {
+                        width = parts[2];
+                        height = parts[3];
+                    }
+                }
+            } catch (error) {
+                if (!silent) {
+                    console.warn('读取 viewBox 失败:', error);
+                }
+            }
+
+            if (!width || !height) {
+                try {
+                    const bbox = svg.getBBox();
+                    width = bbox.width;
+                    height = bbox.height;
+                } catch (error) {
+                    if (!silent) {
+                        console.warn('读取 SVG 边界失败:', error);
+                    }
+                }
+            }
+
+            if (!width || !height) {
+                const rect = svg.getBoundingClientRect();
+                width = rect.width || 1024;
+                height = rect.height || 768;
+            }
+
+            lastSvgDimensions = { width, height };
+            return { width, height };
         }
 
         // Download functions
         function downloadDiagram() {
+            if (!isVisualizationAllowed) {
+                showInfo('当前账号未启用可视化功能');
+                return;
+            }
+
             const svg = document.querySelector('#mermaid-diagram svg');
             if (!svg) {
                 showInfo('没有可下载的图表');
                 return;
             }
 
+            const { width, height } = captureSvgDimensions(svg, true);
+            if (!width || !height) {
+                showError('无法获取图表尺寸，导出失败');
+                return;
+            }
+
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            const data = new XMLSerializer().serializeToString(svg);
-            const DOMURL = window.URL || window.webkitURL || window;
+            const scaleFactor = Math.min(4, Math.max(2, 2000 / Math.min(width, height)));
+            canvas.width = width * scaleFactor;
+            canvas.height = height * scaleFactor;
 
-            const img = new Image();
-            const svgBlob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+            const xml = new XMLSerializer().serializeToString(svg);
+            const DOMURL = window.URL || window.webkitURL || window;
+            const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
             const url = DOMURL.createObjectURL(svgBlob);
+            const img = new Image();
+            img.width = width;
+            img.height = height;
 
             img.onload = function() {
-                canvas.width = img.width;
-                canvas.height = img.height;
+                ctx.setTransform(scaleFactor, 0, 0, scaleFactor, 0, 0);
                 ctx.drawImage(img, 0, 0);
                 DOMURL.revokeObjectURL(url);
 
@@ -1498,17 +1687,23 @@
                     link.href = blobUrl;
                     link.click();
                     setTimeout(() => DOMURL.revokeObjectURL(blobUrl), 1000);
-                });
+                }, 'image/png');
             };
 
             img.onerror = function() {
                 showError('图表导出失败，请稍后重试');
+                DOMURL.revokeObjectURL(url);
             };
 
             img.src = url;
         }
 
         function downloadMermaidCode() {
+            if (!isVisualizationAllowed) {
+                showInfo('当前账号未启用可视化功能');
+                return;
+            }
+
             if (!lastMermaidCode) {
                 showInfo('当前没有可导出的可视化代码');
                 return;
@@ -1533,6 +1728,7 @@
                 container.classList.remove('has-visualization');
             }
             lastMermaidCode = '';
+            lastSvgDimensions = { width: 0, height: 0 };
             updateFullscreenButton();
         }
 
@@ -1541,6 +1737,11 @@
         }
 
         function toggleVisualizationFullscreen() {
+            if (!isVisualizationAllowed) {
+                showInfo('当前账号未启用可视化功能');
+                return;
+            }
+
             const wrapper = document.querySelector('.visualization-wrapper');
             if (!wrapper) {
                 showInfo('找不到可视化区域，无法切换全屏。');
@@ -1559,6 +1760,7 @@
 
                 try {
                     const result = request.call(wrapper);
+                    applyZoom();
                     if (result && typeof result.then === 'function') {
                         result.catch(err => {
                             console.error('进入全屏失败:', err);
@@ -1573,17 +1775,32 @@
                 }
             } else if (exit) {
                 exit.call(document);
+                setTimeout(() => applyZoom(), 50);
             }
         }
 
         function updateFullscreenButton() {
             const btn = document.getElementById('fullscreen-btn');
             if (!btn) return;
+            btn.disabled = !isVisualizationAllowed;
             btn.textContent = isFullscreenActive() ? '退出全屏' : '全屏';
         }
 
+        function handleFullscreenChange() {
+            const wrapper = document.querySelector('.visualization-wrapper');
+            if (wrapper) {
+                if (isFullscreenActive()) {
+                    wrapper.classList.add('fullscreen-active');
+                } else {
+                    wrapper.classList.remove('fullscreen-active');
+                }
+            }
+            updateFullscreenButton();
+            applyZoom();
+        }
+
         ['fullscreenchange', 'webkitfullscreenchange', 'msfullscreenchange'].forEach(eventName => {
-            document.addEventListener(eventName, updateFullscreenButton);
+            document.addEventListener(eventName, handleFullscreenChange);
         });
 
         const escapeHtml = (unsafe = '') => String(unsafe)
@@ -1871,18 +2088,24 @@
             }
         });
 
-        document.querySelector('.visualization-wrapper').addEventListener('wheel', function(e) {
-            if (window.isZoomLocked) {
-                e.preventDefault();
-                return;
-            }
+        const visualizationWrapper = document.querySelector('.visualization-wrapper');
+        if (visualizationWrapper) {
+            visualizationWrapper.addEventListener('wheel', function(e) {
+                if (!isVisualizationAllowed) {
+                    return;
+                }
+                if (window.isZoomLocked) {
+                    e.preventDefault();
+                    return;
+                }
 
-            if (e.ctrlKey) {
-                e.preventDefault();
-                const delta = e.deltaY > 0 ? -0.1 : 0.1;
-                adjustZoom(delta);
-            }
-        });
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                    adjustZoom(delta);
+                }
+            });
+        }
 
         function autoResizeQuestion() {
             const textarea = document.getElementById('question');
@@ -1937,6 +2160,12 @@
                         loadHistory(1);
                     }
                 });
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (isVisualizationAllowed) {
+                applyZoom();
             }
         });
 

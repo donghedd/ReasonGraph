@@ -19,6 +19,7 @@ class User(UserMixin, db.Model):
     # 用户状态
     is_active = db.Column(db.Boolean, default=True, comment='是否激活')
     is_admin = db.Column(db.Boolean, default=False, comment='是否管理员')
+    show_visualization = db.Column(db.Boolean, default=True, nullable=False, comment='是否展示可视化界面')
     
     # 时间戳
     created_at = db.Column(db.DateTime, default=datetime.utcnow, comment='创建时间')
@@ -53,6 +54,7 @@ class User(UserMixin, db.Model):
             'email': self.email,
             'is_active': self.is_active,
             'is_admin': self.is_admin,
+            'show_visualization': self.show_visualization,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_login': self.last_login.isoformat() if self.last_login else None,
             'total_conversations': self.total_conversations,

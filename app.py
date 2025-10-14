@@ -1,13 +1,15 @@
 import logging
 import os
 from functools import wraps
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, abort
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, abort, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_migrate import Migrate
 from datetime import datetime, timedelta
+from io import BytesIO
 from dotenv import load_dotenv
 import json
 from sqlalchemy import or_
+from openpyxl import Workbook
 
 from database_config import DatabaseConfig
 from models import db, User, Conversation, ConversationTag, UserSession, create_indexes
@@ -113,6 +115,60 @@ def admin_required(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def apply_admin_history_filters(query, params):
+    """根据请求参数为管理员历史记录查询应用过滤条件"""
+    keyword = (params.get('q') or '').strip()
+    username = (params.get('username') or '').strip()
+    status = (params.get('status') or '').strip()
+    provider = (params.get('provider') or '').strip()
+    model = (params.get('model') or '').strip()
+    method = (params.get('method') or '').strip()
+    start_date = (params.get('start') or '').strip()
+    end_date = (params.get('end') or '').strip()
+
+    if keyword:
+        like_pattern = f"%{keyword}%"
+        query = query.filter(
+            or_(
+                Conversation.question.ilike(like_pattern),
+                Conversation.answer.ilike(like_pattern),
+                Conversation.raw_output.ilike(like_pattern),
+                Conversation.error_message.ilike(like_pattern)
+            )
+        )
+
+    if username:
+        query = query.filter(User.username.ilike(f"%{username}%"))
+
+    if status:
+        query = query.filter(Conversation.status == status)
+
+    if provider:
+        query = query.filter(Conversation.api_provider == provider)
+
+    if model:
+        query = query.filter(Conversation.model == model)
+
+    if method:
+        query = query.filter(Conversation.reasoning_method == method)
+
+    if start_date:
+        try:
+            start_dt = datetime.fromisoformat(start_date)
+            query = query.filter(Conversation.created_at >= start_dt)
+        except ValueError:
+            logger.warning("无效开始日期: %s", start_date)
+
+    if end_date:
+        try:
+            end_dt = datetime.fromisoformat(end_date)
+            query = query.filter(Conversation.created_at < end_dt + timedelta(days=1))
+        except ValueError:
+            logger.warning("无效结束日期: %s", end_date)
+
+    return query
 
 
 METHOD_DESCRIPTIONS = {
@@ -252,6 +308,11 @@ def register():
         username = (data.get('username') or '').strip()
         email = (data.get('email') or '').strip()
         password = (data.get('password') or '').strip()
+        show_visualization = data.get('show_visualization', True)
+        if isinstance(show_visualization, str):
+            show_visualization = show_visualization.lower() in {'1', 'true', 'yes', 'on'}
+        else:
+            show_visualization = bool(show_visualization)
 
         if not all([username, email, password]):
             return jsonify({'success': False, 'message': '用户名、邮箱和密码均为必填项'}), 400
@@ -262,7 +323,7 @@ def register():
         if User.query.filter_by(email=email).first():
             return jsonify({'success': False, 'message': '邮箱已被使用'}), 409
 
-        user = User(username=username, email=email)
+        user = User(username=username, email=email, show_visualization=show_visualization)
         user.set_password(password)
 
         try:
@@ -322,6 +383,36 @@ def admin_users():
     return jsonify({'success': True, 'users': users})
 
 
+@app.route('/admin/users/<int:user_id>/visualization', methods=['PATCH'])
+@login_required
+@admin_required
+def update_user_visualization(user_id):
+    """管理员更新用户是否可使用可视化界面"""
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({'success': False, 'message': '用户不存在'}), 404
+
+    data = request.get_json(silent=True) or {}
+    if 'show_visualization' not in data:
+        return jsonify({'success': False, 'message': '缺少 show_visualization 参数'}), 400
+
+    show_visualization = data.get('show_visualization')
+    if isinstance(show_visualization, str):
+        show_visualization = show_visualization.lower() in {'1', 'true', 'yes', 'on'}
+    else:
+        show_visualization = bool(show_visualization)
+
+    user.show_visualization = show_visualization
+    try:
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.error("更新用户可视化权限失败: %s", exc)
+        return jsonify({'success': False, 'message': '更新失败，请稍后重试'}), 500
+
+    return jsonify({'success': True, 'user': user.to_dict()})
+
+
 @app.route('/admin/history', methods=['GET'])
 @login_required
 @admin_required
@@ -332,57 +423,8 @@ def admin_history():
     per_page = max(1, min(per_page, 50))
     page = max(page, 1)
 
-    keyword = (request.args.get('q') or '').strip()
-    username = (request.args.get('username') or '').strip()
-    status = (request.args.get('status') or '').strip()
-    provider = (request.args.get('provider') or '').strip()
-    model = (request.args.get('model') or '').strip()
-    method = (request.args.get('method') or '').strip()
-    start_date = (request.args.get('start') or '').strip()
-    end_date = (request.args.get('end') or '').strip()
-
     query = Conversation.query.join(User)
-
-    if keyword:
-        like_pattern = f"%{keyword}%"
-        query = query.filter(
-            or_(
-                Conversation.question.ilike(like_pattern),
-                Conversation.answer.ilike(like_pattern),
-                Conversation.raw_output.ilike(like_pattern),
-                Conversation.error_message.ilike(like_pattern)
-            )
-        )
-
-    if username:
-        query = query.filter(User.username.ilike(f"%{username}%"))
-
-    if status:
-        query = query.filter(Conversation.status == status)
-
-    if provider:
-        query = query.filter(Conversation.api_provider == provider)
-
-    if model:
-        query = query.filter(Conversation.model == model)
-
-    if method:
-        query = query.filter(Conversation.reasoning_method == method)
-
-    if start_date:
-        try:
-            start_dt = datetime.fromisoformat(start_date)
-            query = query.filter(Conversation.created_at >= start_dt)
-        except ValueError:
-            logger.warning("无效开始日期: %s", start_date)
-
-    if end_date:
-        try:
-            end_dt = datetime.fromisoformat(end_date)
-            # 包含当天需加一天
-            query = query.filter(Conversation.created_at < end_dt + timedelta(days=1))
-        except ValueError:
-            logger.warning("无效结束日期: %s", end_date)
+    query = apply_admin_history_filters(query, request.args)
 
     pagination = query.order_by(Conversation.created_at.desc())\
         .paginate(page=page, per_page=per_page, error_out=False)
@@ -405,6 +447,81 @@ def admin_history():
     })
 
 
+@app.route('/admin/history/export', methods=['GET'])
+@login_required
+@admin_required
+def export_admin_history():
+    """导出符合筛选条件的历史记录为 Excel 文件"""
+    query = Conversation.query.join(User)
+    query = apply_admin_history_filters(query, request.args)
+
+    conversations = query.order_by(Conversation.created_at.desc()).all()
+
+    workbook = Workbook()
+    worksheet = workbook.active
+    worksheet.title = "历史记录"
+
+    headers = [
+        "ID",
+        "用户名",
+        "邮箱",
+        "问题",
+        "答案/原始输出",
+        "模型",
+        "API提供商",
+        "推理方法",
+        "状态",
+        "创建时间",
+        "处理时长(秒)",
+        "输入Tokens",
+        "输出Tokens",
+        "总Tokens"
+    ]
+    worksheet.append(headers)
+
+    for conv in conversations:
+        answer = conv.answer or conv.raw_output or ""
+        worksheet.append([
+            conv.id,
+            conv.user.username if conv.user else "",
+            conv.user.email if conv.user else "",
+            conv.question or "",
+            answer,
+            conv.model or "",
+            conv.api_provider or "",
+            conv.reasoning_method or "",
+            conv.status or "",
+            conv.created_at.strftime('%Y-%m-%d %H:%M:%S') if conv.created_at else "",
+            conv.processing_time or 0,
+            conv.input_tokens or 0,
+            conv.output_tokens or 0,
+            conv.total_tokens or 0,
+        ])
+
+    for column_cells in worksheet.columns:
+        max_length = 0
+        column = column_cells[0].column_letter
+        for cell in column_cells:
+            value = cell.value or ""
+            cell_length = len(str(value))
+            if cell_length > max_length:
+                max_length = cell_length
+        adjusted_width = min(max_length + 2, 60)
+        worksheet.column_dimensions[column].width = adjusted_width
+
+    output = BytesIO()
+    workbook.save(output)
+    output.seek(0)
+
+    filename = f"reasoning_history_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name=filename,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+
 @app.route('/logout')
 @login_required
 def logout():
@@ -416,7 +533,11 @@ def logout():
 @login_required
 def get_config():
     """Get initial configuration"""
-    return jsonify(config.get_initial_values())
+    initial = config.get_initial_values()
+    initial['permissions'] = {
+        'show_visualization': getattr(current_user, 'show_visualization', True)
+    }
+    return jsonify(initial)
 
 @app.route('/method-config/<method_id>')
 @login_required
