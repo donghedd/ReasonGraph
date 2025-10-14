@@ -1521,6 +1521,38 @@
             historyModalDownloadBtn.disabled = !modalActive || !historyModalCode || !hasSvg;
         }
 
+        function downloadSvgMarkup(markup, filenameBase) {
+            if (!markup) return false;
+            let content = markup.trim();
+            if (!content) return false;
+
+            if (!content.startsWith('<svg')) {
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = content;
+                const svgEl = wrapper.querySelector('svg');
+                if (svgEl) {
+                    content = new XMLSerializer().serializeToString(svgEl);
+                } else {
+                    return false;
+                }
+            }
+
+            if (!/xmlns(:\w+)?=/i.test(content)) {
+                content = content.replace(/<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"', 1);
+            }
+
+            const svgBlob = new Blob([content], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            const link = document.createElement('a');
+            link.download = `${filenameBase || 'history-diagram'}.svg`;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            return true;
+        }
+
         function bindHistoryVisualizationControls() {
             const zoomOutBtn = document.getElementById('history-zoom-out');
             const zoomInBtn = document.getElementById('history-zoom-in');
@@ -1576,16 +1608,19 @@
             }
 
             let tempContainer = null;
+            let serializedSvg = '';
+            let rawSvgMarkup = '';
             const renderId = `history-download-${Date.now()}`;
             try {
                 const renderResult = await mermaid.render(renderId, code);
+                rawSvgMarkup = renderResult.svg || '';
                 tempContainer = document.createElement('div');
                 tempContainer.style.position = 'absolute';
                 tempContainer.style.left = '-10000px';
                 tempContainer.style.top = '-10000px';
                 tempContainer.style.pointerEvents = 'none';
                 tempContainer.style.opacity = '0';
-                tempContainer.innerHTML = renderResult.svg || '';
+                tempContainer.innerHTML = rawSvgMarkup;
                 document.body.appendChild(tempContainer);
 
                 const svgElement = tempContainer.querySelector('svg');
@@ -1602,13 +1637,12 @@
                 if (!clonedSvg.getAttribute('xmlns')) {
                     clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
                 }
+                serializedSvg = new XMLSerializer().serializeToString(clonedSvg);
 
-                const xml = new XMLSerializer().serializeToString(clonedSvg);
-                const DOMURL = window.URL || window.webkitURL || window;
-                const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
-                const url = DOMURL.createObjectURL(svgBlob);
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
+                img.decoding = 'sync';
+                const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serializedSvg)}`;
 
                 const scale = Math.min(
                     4,
@@ -1622,11 +1656,13 @@
                 await new Promise((resolve, reject) => {
                     img.onload = () => {
                         try {
-                            ctx.setTransform(scale, 0, 0, scale, 0, 0);
+                            ctx.setTransform(1, 0, 0, 1, 0, 0);
                             ctx.clearRect(0, 0, canvas.width, canvas.height);
-                            ctx.drawImage(img, 0, 0);
-                        } finally {
-                            DOMURL.revokeObjectURL(url);
+                            ctx.setTransform(scale, 0, 0, scale, 0, 0);
+                            ctx.drawImage(img, 0, 0, width, height);
+                        } catch (drawError) {
+                            reject(drawError);
+                            return;
                         }
 
                         const triggerDownload = (href, shouldRevoke = false) => {
@@ -1637,33 +1673,56 @@
                             link.click();
                             document.body.removeChild(link);
                             if (shouldRevoke) {
+                                const DOMURL = window.URL || window.webkitURL || window;
                                 setTimeout(() => DOMURL.revokeObjectURL(href), 1000);
                             }
                         };
 
-                        if (canvas.toBlob) {
-                            canvas.toBlob(blob => {
-                                if (blob) {
-                                    const blobUrl = DOMURL.createObjectURL(blob);
-                                    triggerDownload(blobUrl, true);
-                                } else {
-                                    triggerDownload(canvas.toDataURL('image/png'));
-                                }
+                        const exportWithDataUrl = () => {
+                            try {
+                                triggerDownload(canvas.toDataURL('image/png'));
                                 resolve();
-                            }, 'image/png');
-                        } else {
-                            triggerDownload(canvas.toDataURL('image/png'));
-                            resolve();
+                            } catch (err) {
+                                reject(err);
+                            }
+                        };
+
+                        try {
+                            if (canvas.toBlob) {
+                                canvas.toBlob(blob => {
+                                    if (blob) {
+                                        const DOMURL = window.URL || window.webkitURL || window;
+                                        const blobUrl = DOMURL.createObjectURL(blob);
+                                        triggerDownload(blobUrl, true);
+                                        resolve();
+                                    } else {
+                                        exportWithDataUrl();
+                                    }
+                                }, 'image/png');
+                            } else {
+                                exportWithDataUrl();
+                            }
+                        } catch (err) {
+                            reject(err);
                         }
                     };
 
                     img.onerror = (error) => {
-                        DOMURL.revokeObjectURL(url);
                         reject(error || new Error('图像生成失败'));
                     };
+
+                    img.src = svgDataUrl;
                 });
 
-                return true;
+                return 'png';
+            } catch (error) {
+                console.error('历史流程图 PNG 导出失败，尝试回退为 SVG:', error);
+                const svgContent = serializedSvg || rawSvgMarkup;
+                if (downloadSvgMarkup(svgContent, filenameBase)) {
+                    showAdminMessage('info', 'PNG 导出失败，已改为下载 SVG 文件。');
+                    return 'svg';
+                }
+                throw error;
             } finally {
                 if (tempContainer && tempContainer.parentNode) {
                     tempContainer.parentNode.removeChild(tempContainer);
@@ -1688,11 +1747,14 @@
             }
 
             try {
-                await renderHistoryDiagramImage(
+                const resultType = await renderHistoryDiagramImage(
                     code,
                     modalActive ? 'history-diagram-zoomed' : 'history-diagram',
                     modalActive ? Math.max(historyModalZoom, 1) : Math.max(historyZoom, 1)
                 );
+                if (resultType === 'svg' && !modalActive) {
+                    // 已提示
+                }
             } catch (error) {
                 console.error('导出历史流程图失败:', error);
                 showAdminMessage('error', '导出流程图失败，请稍后重试');
