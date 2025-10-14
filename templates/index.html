@@ -318,6 +318,7 @@
             border-radius: 8px;
             background: #f8fafc;
             border: 1px solid #e5e7eb;
+            grid-column: 1 / -1;
         }
 
         .visualization-header {
@@ -911,7 +912,7 @@
                     </button>
                 </div>
             </div>
-            <div class="links">
+            <!-- <div class="links">
                 <span class="links-group">
                     <a href="https://github.com/ZongqianLi/ReasonGraph"><u>Github</u></a>
                     <span class="link-divider">|</span>
@@ -928,7 +929,7 @@
                         <span class="tooltiptext">切换到中文版；如果想使模型输出中文，只需用中文提问，同时输入"请使用中文回答"</span>
                     </a>
                 </span>
-            </div>
+            </div> -->
         </div>
     </div>
 
@@ -948,57 +949,51 @@
                 </select>
             </div>
             <div class="param-group">
-                <div class="param-label">API密钥</div>
-                <input type="password" class="param-input" id="api-key" placeholder="请输入您的API密钥">
-            </div>
-            <div class="param-group">
                 <div class="param-label">最大Token数</div>
                 <input type="number" class="param-input" id="max-tokens">
             </div>
-        </div>
-
-        <div class="column column-output">
-            <h2>提示与结果</h2>
             <div class="param-group">
                 <div class="param-label">提示格式</div>
                 <textarea class="param-input" id="prompt-format" rows="8" placeholder="推理提示格式将根据选择的方法自动填充"></textarea>
             </div>
+        </div>
 
+        <div class="column column-output">
+            <h2>推理结果</h2>
             <div class="output-section result-section">
-                <h3>推理结果</h3>
-                <div class="output-content" id="raw-output">在此处显示推理结果...</div>
+                <div class="output-content" id="raw-output">暂无推理结果</div>
+            </div>
+        </div>
+
+        <div class="visualization-section" id="visualization-section">
+            <div class="visualization-header">
+                <h3>推理可视化</h3>
+                <div class="visualization-toggle-hint">可调整图形展示参数</div>
+            </div>
+            <div class="visualization-controls">
+                <div class="param-group compact">
+                    <div class="param-label">每行字符数</div>
+                    <input type="number" class="param-input" id="chars-per-line">
+                </div>
+                <div class="param-group compact">
+                    <div class="param-label">最大行数</div>
+                    <input type="number" class="param-input" id="max-lines">
+                </div>
             </div>
 
-            <div class="visualization-section" id="visualization-section">
-                <div class="visualization-header">
-                    <h3>推理可视化</h3>
-                    <div class="visualization-toggle-hint">可调整图形展示参数</div>
-                </div>
-                <div class="visualization-controls">
-                    <div class="param-group compact">
-                        <div class="param-label">每行字符数</div>
-                        <input type="number" class="param-input" id="chars-per-line">
-                    </div>
-                    <div class="param-group compact">
-                        <div class="param-label">最大行数</div>
-                        <input type="number" class="param-input" id="max-lines">
-                    </div>
-                </div>
-
-                <div class="zoom-controls">
-                    <button class="zoom-button" onclick="adjustZoom(-0.1)">-</button>
-                    <div class="zoom-level" id="zoom-level">100%</div>
-                    <button class="zoom-button" onclick="adjustZoom(0.1)">+</button>
-                    <button class="zoom-button" onclick="resetZoom()">重置</button>
-                    <button class="zoom-button" id="fullscreen-btn" onclick="toggleVisualizationFullscreen()">全屏</button>
-                    <button class="zoom-button" onclick="downloadDiagram()">下载流程图</button>
-                    <button class="zoom-button" onclick="downloadMermaidCode()">下载代码</button>
-                </div>
-                <div class="visualization-wrapper">
-                    <div id="mermaid-container">
-                        <div id="mermaid-diagram">
-                            <div class="placeholder-visualization">可视化结果将在此显示</div>
-                        </div>
+            <div class="zoom-controls">
+                <button class="zoom-button" onclick="adjustZoom(-0.1)">-</button>
+                <div class="zoom-level" id="zoom-level">100%</div>
+                <button class="zoom-button" onclick="adjustZoom(0.1)">+</button>
+                <button class="zoom-button" onclick="resetZoom()">重置</button>
+                <button class="zoom-button" id="fullscreen-btn" onclick="toggleVisualizationFullscreen()">全屏</button>
+                <button class="zoom-button" onclick="downloadDiagram()">下载流程图</button>
+                <button class="zoom-button" onclick="downloadMermaidCode()">下载代码</button>
+            </div>
+            <div class="visualization-wrapper">
+                <div id="mermaid-container">
+                    <div id="mermaid-diagram">
+                        <div class="placeholder-visualization">可视化结果将在此显示</div>
                     </div>
                 </div>
             </div>
@@ -1191,15 +1186,9 @@
         // Validate inputs
         function validateInputs() {
             const question = document.getElementById('question').value.trim();
-            const apiKey = document.getElementById('api-key').value.trim();
-            
+
             if (!question) {
                 showError('请输入问题');
-                return false;
-            }
-            
-            if (!apiKey) {
-                showError('请输入API密钥');
                 return false;
             }
             
@@ -1279,7 +1268,6 @@
 
             const data = {
                 provider: document.getElementById('api-provider').value,
-                api_key: document.getElementById('api-key').value,
                 model: document.getElementById('model').value,
                 max_tokens: parseInt(document.getElementById('max-tokens').value),
                 question: document.getElementById('question').value,
@@ -1428,7 +1416,6 @@
 
             const data = {
                 provider: document.getElementById('api-provider').value,
-                api_key: document.getElementById('api-key').value,
                 model: document.getElementById('model').value,
                 max_tokens: parseInt(document.getElementById('max-tokens').value),
                 question: document.getElementById('question').value,

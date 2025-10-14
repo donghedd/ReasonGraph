@@ -1,6 +1,7 @@
 import logging
 import os
 from functools import wraps
+from typing import Any, Dict
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, abort, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_migrate import Migrate
@@ -115,6 +116,45 @@ def admin_required(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def _sanitize_provider_map(data: Dict[str, Any]) -> Dict[str, str]:
+    """Normalize provider-key mapping into lowercase keys with trimmed values."""
+    sanitized: Dict[str, str] = {}
+    for provider, key in (data or {}).items():
+        if not isinstance(provider, str):
+            continue
+        provider_id = provider.strip().lower()
+        if not provider_id:
+            continue
+        key_value = "" if key is None else str(key)
+        key_value = key_value.strip()
+        if key_value:
+            sanitized[provider_id] = key_value
+    return sanitized
+
+
+def _get_user_api_key(user: User, provider: str) -> str:
+    """Fetch API key for provider, preferring user-specific override."""
+    provider_id = (provider or "").strip().lower()
+    if not provider_id:
+        return ""
+
+    if user:
+        user_keys = user.get_api_keys()
+        key = user_keys.get(provider_id)
+        if key:
+            return key
+
+    return general_config.get_default_api_key(provider_id)
+
+
+def _set_user_api_keys(user: User, api_keys: Dict[str, Any]) -> None:
+    """Persist sanitized API keys for a user."""
+    if not user:
+        return
+    sanitized = _sanitize_provider_map(api_keys)
+    user.set_api_keys(sanitized)
 
 
 def apply_admin_history_filters(query, params):
@@ -413,6 +453,64 @@ def update_user_visualization(user_id):
     return jsonify({'success': True, 'user': user.to_dict()})
 
 
+@app.route('/admin/api-keys/global', methods=['GET', 'PUT'])
+@login_required
+@admin_required
+def manage_global_api_keys():
+    """管理员读取或更新全局 API 密钥"""
+    if request.method == 'GET':
+        return jsonify({'success': True, 'api_keys': general_config.provider_api_keys})
+
+    data = request.get_json(silent=True) or {}
+    api_keys = data.get('api_keys')
+    if api_keys is None:
+        return jsonify({'success': False, 'message': '缺少 api_keys 参数'}), 400
+
+    if not isinstance(api_keys, dict):
+        return jsonify({'success': False, 'message': 'api_keys 必须是对象'}), 400
+
+    sanitized = _sanitize_provider_map(api_keys)
+    try:
+        general_config.update_provider_api_keys(sanitized)
+    except Exception as exc:  # noqa: BLE001
+        logger.error('保存全局 API 密钥失败: %s', exc)
+        return jsonify({'success': False, 'message': '保存失败，请检查服务器日志'}), 500
+
+    return jsonify({'success': True, 'api_keys': general_config.provider_api_keys})
+
+
+@app.route('/admin/users/<int:user_id>/api-keys', methods=['GET', 'PATCH'])
+@login_required
+@admin_required
+def manage_user_api_keys(user_id):
+    """管理员读取或更新指定用户的 API 密钥"""
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({'success': False, 'message': '用户不存在'}), 404
+
+    if request.method == 'GET':
+        return jsonify({'success': True, 'api_keys': user.get_api_keys()})
+
+    data = request.get_json(silent=True) or {}
+    api_keys = data.get('api_keys')
+    if api_keys is None:
+        return jsonify({'success': False, 'message': '缺少 api_keys 参数'}), 400
+
+    if not isinstance(api_keys, dict):
+        return jsonify({'success': False, 'message': 'api_keys 必须是对象'}), 400
+
+    _set_user_api_keys(user, api_keys)
+
+    try:
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.error('更新用户 %s API 密钥失败: %s', user.username, exc)
+        return jsonify({'success': False, 'message': '更新失败，请稍后重试'}), 500
+
+    return jsonify({'success': True, 'api_keys': user.get_api_keys()})
+
+
 @app.route('/admin/history', methods=['GET'])
 @login_required
 @admin_required
@@ -567,12 +665,6 @@ def process():
         if not provider:
             return jsonify({'success': False, 'error': '需要指定API提供商'}), 400
 
-        api_key = (data.get('api_key') or '').strip()
-        if not api_key:
-            api_key = general_config.get_default_api_key(provider) or ''
-        if not api_key:
-            return jsonify({'success': False, 'error': '请提供有效的API密钥'}), 400
-
         question = (data.get('question') or '').strip()
         if not question:
             return jsonify({'success': False, 'error': '需要提问内容'}), 400
@@ -631,6 +723,10 @@ def process():
 
         # 执行推理处理
         try:
+            api_key = _get_user_api_key(current_user, provider)
+            if not api_key:
+                return jsonify({'success': False, 'error': '管理员尚未配置该模型的API密钥'}), 400
+
             result = reasoning_service.run(
                 provider=provider,
                 api_key=api_key,
@@ -774,12 +870,6 @@ def long_reasoning():
         if not provider:
             return jsonify({'success': False, 'error': '需要指定API提供商'}), 400
 
-        api_key = (data.get('api_key') or '').strip()
-        if not api_key:
-            api_key = general_config.get_default_api_key(provider) or ''
-        if not api_key:
-            return jsonify({'success': False, 'error': '请提供有效的API密钥'}), 400
-
         provider_models = general_config.provider_model_map.get(provider, [])
         model = (data.get('model') or '').strip() or (provider_models[0] if provider_models else None)
         if not model:
@@ -831,6 +921,10 @@ def long_reasoning():
         db.session.commit()
 
         try:
+            api_key = _get_user_api_key(current_user, provider)
+            if not api_key:
+                return jsonify({'success': False, 'error': '管理员尚未配置该模型的API密钥'}), 400
+
             result = reasoning_service.run(
                 provider=provider,
                 api_key=api_key,

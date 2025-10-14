@@ -340,6 +340,52 @@
             color: #4b5563;
         }
 
+        .api-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .api-form-section h3 {
+            margin: 0 0 14px;
+            font-size: 18px;
+            color: #1f2937;
+        }
+
+        .api-form-section .form-group {
+            margin-bottom: 12px;
+        }
+
+        .api-helper-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .api-form-section form .btn {
+            margin-top: 6px;
+        }
+
+        .history-mermaid {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            background: #ffffff;
+        }
+
+        .history-mermaid svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .history-mermaid-placeholder {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+        }
+
         .message {
             margin-bottom: 18px;
             padding: 14px 18px;
@@ -390,7 +436,8 @@
                 grid-template-columns: 1fr;
             }
         }
-    </style>
+</style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
 </head>
 <body>
     <div class="admin-container">
@@ -463,6 +510,44 @@
                         <tr><td colspan="7" class="empty-state">加载中...</td></tr>
                     </tbody>
                 </table>
+            </div>
+        </section>
+
+        <section class="card" id="api-key-card">
+            <h2>API 密钥管理</h2>
+            <div class="api-card-grid">
+                <div class="api-form-section">
+                    <h3>全局密钥</h3>
+                    <p class="api-helper-text">全局密钥将用于所有未配置个人密钥的用户。</p>
+                    <form id="global-api-form">
+                        {% for provider in provider_options %}
+                        <div class="form-group">
+                            <label>{{ provider.name }} <span style="color:#9ca3af; font-size:12px;">({{ provider.id }})</span></label>
+                            <input type="text" class="input api-provider-input" data-provider="{{ provider.id }}" placeholder="未配置时留空">
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary" id="global-api-save">保存全局密钥</button>
+                    </form>
+                </div>
+                <div class="api-form-section">
+                    <h3>用户密钥</h3>
+                    <p class="api-helper-text">可为单个用户配置专用密钥，优先级高于全局密钥。</p>
+                    <div class="form-group">
+                        <label for="user-api-select">选择用户</label>
+                        <select id="user-api-select" class="select">
+                            <option value="">请选择用户</option>
+                        </select>
+                    </div>
+                    <form id="user-api-form">
+                        {% for provider in provider_options %}
+                        <div class="form-group">
+                            <label>{{ provider.name }} <span style="color:#9ca3af; font-size:12px;">({{ provider.id }})</span></label>
+                            <input type="text" class="input user-api-input" data-provider="{{ provider.id }}" placeholder="使用全局密钥" disabled>
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary" id="user-api-save" disabled>保存用户密钥</button>
+                    </form>
+                </div>
             </div>
         </section>
 
@@ -576,6 +661,17 @@
             adminMethodMap[item.id] = item.name;
         });
 
+        const providerOptionsData = {{ provider_options | tojson }};
+
+        mermaid.initialize({ startOnLoad: false, theme: 'default' });
+        let historyMermaidCounter = 0;
+
+        const globalApiForm = document.getElementById('global-api-form');
+        const userApiForm = document.getElementById('user-api-form');
+        const userApiSelect = document.getElementById('user-api-select');
+        const globalApiSaveBtn = document.getElementById('global-api-save');
+        const userApiSaveBtn = document.getElementById('user-api-save');
+
         const statusNameMap = {
             completed: '已完成',
             failed: '失败',
@@ -607,7 +703,199 @@
                 .replace(/'/g, '&#39;');
         };
 
+        function collectApiInputs(form) {
+            if (!form) return {};
+            const payload = {};
+            form.querySelectorAll('input[data-provider]').forEach(input => {
+                const providerId = (input.dataset.provider || '').toLowerCase();
+                if (!providerId) return;
+                payload[providerId] = input.value.trim();
+            });
+            return payload;
+        }
+
+        function populateGlobalApiInputs(apiKeys) {
+            if (!globalApiForm) return;
+            const mapping = apiKeys || {};
+            globalApiForm.querySelectorAll('input[data-provider]').forEach(input => {
+                const providerId = (input.dataset.provider || '').toLowerCase();
+                input.value = mapping[providerId] || '';
+            });
+        }
+
+        async function loadGlobalApiKeys() {
+            if (!globalApiForm) return;
+            try {
+                const response = await fetch('/admin/api-keys/global');
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || '加载全局密钥失败');
+                }
+                populateGlobalApiInputs(result.api_keys || {});
+            } catch (error) {
+                console.error(error);
+                showAdminMessage('error', error.message || '加载全局密钥失败');
+            }
+        }
+
+        async function saveGlobalApiKeys(event) {
+            event.preventDefault();
+            if (!globalApiForm) return;
+            const payload = collectApiInputs(globalApiForm);
+            if (globalApiSaveBtn) {
+                globalApiSaveBtn.disabled = true;
+                globalApiSaveBtn.textContent = '保存中...';
+            }
+            try {
+                const response = await fetch('/admin/api-keys/global', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_keys: payload })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || '保存全局密钥失败');
+                }
+                populateGlobalApiInputs(result.api_keys || {});
+                showAdminMessage('success', '全局密钥已更新');
+            } catch (error) {
+                console.error(error);
+                showAdminMessage('error', error.message || '保存全局密钥失败');
+            } finally {
+                if (globalApiSaveBtn) {
+                    globalApiSaveBtn.disabled = false;
+                    globalApiSaveBtn.textContent = '保存全局密钥';
+                }
+            }
+        }
+
+        function clearUserApiInputs(disable = true) {
+            if (!userApiForm) return;
+            userApiForm.querySelectorAll('input[data-provider]').forEach(input => {
+                input.value = '';
+                if (disable) {
+                    input.disabled = true;
+                }
+            });
+            if (userApiSaveBtn) {
+                userApiSaveBtn.disabled = disable;
+            }
+        }
+
+        function populateUserApiInputs(apiKeys) {
+            if (!userApiForm) return;
+            const mapping = apiKeys || {};
+            userApiForm.querySelectorAll('input[data-provider]').forEach(input => {
+                const providerId = (input.dataset.provider || '').toLowerCase();
+                input.value = mapping[providerId] || '';
+                input.disabled = false;
+            });
+            if (userApiSaveBtn) {
+                userApiSaveBtn.disabled = false;
+            }
+        }
+
+        async function loadUserApiKeys(userId) {
+            if (!userApiForm) return;
+            if (!userId) {
+                clearUserApiInputs(true);
+                return;
+            }
+
+            clearUserApiInputs(true);
+            try {
+                const response = await fetch(`/admin/users/${userId}/api-keys`);
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || '加载用户密钥失败');
+                }
+                populateUserApiInputs(result.api_keys || {});
+            } catch (error) {
+                console.error(error);
+                showAdminMessage('error', error.message || '加载用户密钥失败');
+                clearUserApiInputs(false);
+            }
+        }
+
+        async function saveUserApiKeys(event) {
+            event.preventDefault();
+            if (!userApiForm || !userApiSelect) return;
+            const userId = userApiSelect.value;
+            if (!userId) {
+                showAdminMessage('error', '请先选择用户');
+                return;
+            }
+
+            const payload = collectApiInputs(userApiForm);
+            if (userApiSaveBtn) {
+                userApiSaveBtn.disabled = true;
+                userApiSaveBtn.textContent = '保存中...';
+            }
+
+            try {
+                const response = await fetch(`/admin/users/${userId}/api-keys`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_keys: payload })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || '保存用户密钥失败');
+                }
+                populateUserApiInputs(result.api_keys || {});
+                showAdminMessage('success', '用户密钥已更新');
+            } catch (error) {
+                console.error(error);
+                showAdminMessage('error', error.message || '保存用户密钥失败');
+            } finally {
+                if (userApiSaveBtn) {
+                    userApiSaveBtn.disabled = false;
+                    userApiSaveBtn.textContent = '保存用户密钥';
+                }
+            }
+        }
+
+        function updateUserSelectOptions(users) {
+            cachedUsers = Array.isArray(users) ? users.slice() : [];
+            if (!userApiSelect) return;
+
+            const previous = userApiSelect.value;
+            let options = '<option value="">请选择用户</option>';
+            cachedUsers.forEach(user => {
+                const label = `${escapeHtml(user.username || '未命名用户')}${user.is_admin ? ' (管理员)' : ''}`;
+                options += `<option value="${user.id}">${label}</option>`;
+            });
+            userApiSelect.innerHTML = options;
+
+            if (previous && cachedUsers.some(user => String(user.id) === previous)) {
+                userApiSelect.value = previous;
+                loadUserApiKeys(previous);
+            } else {
+                userApiSelect.value = '';
+                clearUserApiInputs(true);
+            }
+        }
+
+        function renderHistoryVisualization(visualizationData) {
+            const container = document.getElementById('history-mermaid');
+            if (!container) return;
+
+            if (!visualizationData || !visualizationData.code) {
+                container.innerHTML = '<div class="history-mermaid-placeholder">暂无可视化数据</div>';
+                return;
+            }
+
+            const diagramId = `history-mermaid-${Date.now()}-${historyMermaidCounter++}`;
+            mermaid.render(diagramId, visualizationData.code).then(result => {
+                container.innerHTML = result.svg;
+            }).catch(error => {
+                console.error('渲染可视化失败:', error);
+                container.innerHTML = '<div class="history-mermaid-placeholder">可视化渲染失败</div>';
+            });
+        }
+
         /* 用户管理 */
+        let cachedUsers = [];
         let userSearchTerm = '';
         let userSearchTimer = null;
         let usersLoading = false;
@@ -637,7 +925,9 @@
                     throw new Error('加载用户失败');
                 }
                 const result = await response.json();
-                renderUserTable(result.users || []);
+                const users = result.users || [];
+                renderUserTable(users);
+                updateUserSelectOptions(users);
             } catch (error) {
                 console.error(error);
                 if (userTableBody) {
@@ -791,6 +1081,27 @@
                 }
             });
         }
+
+        if (globalApiForm) {
+            globalApiForm.addEventListener('submit', saveGlobalApiKeys);
+        }
+
+        if (userApiForm) {
+            userApiForm.addEventListener('submit', saveUserApiKeys);
+        }
+
+        if (userApiSelect) {
+            userApiSelect.addEventListener('change', (event) => {
+                const userId = event.target.value;
+                if (userId) {
+                    loadUserApiKeys(userId);
+                } else {
+                    clearUserApiInputs(true);
+                }
+            });
+        }
+
+        clearUserApiInputs(true);
 
         /* 历史记录搜索 */
         let adminHistoryLoading = false;
@@ -1009,7 +1320,12 @@
                 </div>
                 ${rawOutput ? `<div><strong>原始输出：</strong><pre class="detail-pre">${escapeHtml(rawOutput)}</pre></div>` : ''}
                 ${conv.error_message ? `<div><strong>错误信息：</strong><pre class="detail-pre">${escapeHtml(conv.error_message)}</pre></div>` : ''}
+                <div class="history-mermaid" id="history-mermaid">
+                    <div class="history-mermaid-placeholder">暂无可视化数据</div>
+                </div>
             `;
+
+            renderHistoryVisualization(conv.visualization_data);
         }
 
         if (historyPrevBtn) {
@@ -1069,6 +1385,7 @@
         // 初始加载
         loadUsers();
         loadAdminHistory(1);
+        loadGlobalApiKeys();
     </script>
 </body>
 </html>

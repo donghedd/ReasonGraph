@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import json
+from typing import Dict
 from sqlalchemy.dialects.mysql import LONGTEXT
 
 db = SQLAlchemy()
@@ -20,6 +21,7 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True, comment='是否激活')
     is_admin = db.Column(db.Boolean, default=False, comment='是否管理员')
     show_visualization = db.Column(db.Boolean, default=True, nullable=False, comment='是否展示可视化界面')
+    api_keys = db.Column(LONGTEXT, nullable=True, comment='API密钥配置(JSON)')
     
     # 时间戳
     created_at = db.Column(db.DateTime, default=datetime.utcnow, comment='创建时间')
@@ -60,6 +62,32 @@ class User(UserMixin, db.Model):
             'total_conversations': self.total_conversations,
             'total_tokens_used': self.total_tokens_used
         }
+
+    def get_api_keys(self) -> Dict[str, str]:
+        """Return parsed API keys mapping."""
+        if not self.api_keys:
+            return {}
+        try:
+            data = json.loads(self.api_keys)
+            if isinstance(data, dict):
+                return {str(k).lower(): str(v) for k, v in data.items() if v}
+        except json.JSONDecodeError:
+            return {}
+        return {}
+
+    def set_api_keys(self, api_keys: Dict[str, str]) -> None:
+        """Persist API keys mapping."""
+        sanitized: Dict[str, str] = {}
+        for provider, key in api_keys.items():
+            if not isinstance(provider, str):
+                continue
+            provider_id = provider.strip().lower()
+            if not provider_id:
+                continue
+            key_value = (key or "").strip()
+            if key_value:
+                sanitized[provider_id] = key_value
+        self.api_keys = json.dumps(sanitized, ensure_ascii=False) if sanitized else None
 
 class Conversation(db.Model):
     """对话记录表"""

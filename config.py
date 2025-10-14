@@ -24,6 +24,16 @@ def load_api_keys_from_file(file_path: str = "api_keys.json") -> Dict[str, str]:
         logger.error(f"Error loading API keys from {file_path}: {str(e)}")
         return {}
 
+
+def save_api_keys_to_file(api_keys: Dict[str, str], file_path: str = "api_keys.json") -> None:
+    """Persist API keys to JSON file"""
+    try:
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(api_keys, f, ensure_ascii=False, indent=2)
+    except Exception as exc:  # noqa: BLE001
+        logger.error("Error saving API keys to %s: %s", file_path, exc)
+        raise
+
 @dataclass
 class GeneralConfig:
     """General configuration parameters that are method-independent"""
@@ -141,6 +151,22 @@ class GeneralConfig:
     def get_default_api_key(self, provider: str) -> str:
         """Get default API key for specific provider"""
         return self.provider_api_keys.get(provider, "")
+
+    def update_provider_api_keys(self, api_keys: Dict[str, str]) -> None:
+        """Update provider API keys and persist to storage"""
+        sanitized: Dict[str, str] = {}
+        for provider, key in api_keys.items():
+            if not isinstance(provider, str):
+                continue
+            provider_id = provider.strip().lower()
+            if not provider_id:
+                continue
+            key_value = (key or "").strip()
+            if key_value:
+                sanitized[provider_id] = key_value
+
+        self.provider_api_keys = sanitized
+        save_api_keys_to_file(self.provider_api_keys)
 
 @dataclass
 class PlainTextConfig:
