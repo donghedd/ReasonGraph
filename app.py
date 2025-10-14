@@ -413,14 +413,27 @@ def admin_dashboard():
 def admin_users():
     """管理员查看用户列表"""
     search = (request.args.get('q') or '').strip()
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+
+    page = max(1, page)
+    per_page = max(1, min(per_page, 100))
 
     query = User.query.order_by(User.created_at.desc())
     if search:
         like_pattern = f"%{search}%"
         query = query.filter(or_(User.username.ilike(like_pattern), User.email.ilike(like_pattern)))
 
-    users = [user.to_dict() for user in query.all()]
-    return jsonify({'success': True, 'users': users})
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    users = [user.to_dict() for user in pagination.items]
+    return jsonify({
+        'success': True,
+        'users': users,
+        'total': pagination.total,
+        'pages': pagination.pages or 1,
+        'current_page': pagination.page,
+        'per_page': pagination.per_page
+    })
 
 
 @app.route('/admin/users/<int:user_id>/visualization', methods=['PATCH'])
@@ -451,6 +464,55 @@ def update_user_visualization(user_id):
         return jsonify({'success': False, 'message': '更新失败，请稍后重试'}), 500
 
     return jsonify({'success': True, 'user': user.to_dict()})
+
+
+@app.route('/admin/users/<int:user_id>/reset-password', methods=['POST'])
+@login_required
+@admin_required
+def admin_reset_user_password(user_id: int):
+    """管理员重置用户密码（默认重置为 ROG）"""
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({'success': False, 'message': '用户不存在'}), 404
+
+    if user.id == current_user.id:
+        return jsonify({'success': False, 'message': '无法重置当前登录账户的密码'}), 400
+
+    try:
+        user.set_password('ROG')
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.error('重置用户 %s 密码失败: %s', user.username, exc)
+        return jsonify({'success': False, 'message': '重置密码失败，请稍后重试'}), 500
+
+    logger.info('管理员 %s 重置了用户 %s 的密码', current_user.username, user.username)
+    return jsonify({'success': True, 'message': '密码已重置为 ROG'})
+
+
+@app.route('/admin/users/<int:user_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def admin_delete_user(user_id: int):
+    """管理员删除用户"""
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({'success': False, 'message': '用户不存在'}), 404
+
+    if user.id == current_user.id:
+        return jsonify({'success': False, 'message': '不能删除当前登录的账户'}), 400
+
+    try:
+        UserSession.query.filter_by(user_id=user.id).delete()
+        db.session.delete(user)
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.error('删除用户 %s 失败: %s', user.username, exc)
+        return jsonify({'success': False, 'message': '删除失败，请稍后重试'}), 500
+
+    logger.info('管理员 %s 删除了用户 %s', current_user.username, user.username)
+    return jsonify({'success': True})
 
 
 @app.route('/admin/api-keys/global', methods=['GET', 'PUT'])
@@ -543,6 +605,27 @@ def admin_history():
         'current_page': pagination.page,
         'per_page': pagination.per_page
     })
+
+
+@app.route('/admin/history/<int:conversation_id>', methods=['DELETE'])
+@login_required
+@admin_required
+def admin_delete_history(conversation_id: int):
+    """管理员删除指定历史记录"""
+    conversation = db.session.get(Conversation, conversation_id)
+    if not conversation:
+        return jsonify({'success': False, 'message': '记录不存在'}), 404
+
+    try:
+        db.session.delete(conversation)
+        db.session.commit()
+    except Exception as exc:  # noqa: BLE001
+        db.session.rollback()
+        logger.error('删除历史记录 %s 失败: %s', conversation_id, exc)
+        return jsonify({'success': False, 'message': '删除失败，请稍后重试'}), 500
+
+    logger.info('管理员 %s 删除了历史记录 %s', current_user.username, conversation_id)
+    return jsonify({'success': True})
 
 
 @app.route('/admin/history/export', methods=['GET'])

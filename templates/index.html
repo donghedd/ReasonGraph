@@ -378,11 +378,41 @@
             border-color: #667eea;
         }
 
-        .zoom-level {
+        .zoom-input-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #ffffff;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .zoom-input-wrapper:focus-within {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+
+        .zoom-input {
+            width: 64px;
+            border: none;
+            background: transparent;
             font-size: 12px;
-            color: #666;
-            min-width: 40px;
-            text-align: center;
+            color: #1f2937;
+            text-align: right;
+            outline: none;
+            padding: 0;
+        }
+
+        .zoom-input::-webkit-outer-spin-button,
+        .zoom-input::-webkit-inner-spin-button {
+            margin: 0;
+        }
+
+        .zoom-suffix {
+            font-size: 12px;
+            color: #6b7280;
         }
 
         .visualization-wrapper {
@@ -394,10 +424,6 @@
             position: relative;
         }
 
-        .visualization-wrapper.fullscreen-active {
-            height: 100%;
-        }
-
         #mermaid-diagram svg {
             width: 100%;
             height: auto;
@@ -405,7 +431,7 @@
 
         #mermaid-container {
             padding: 10px;
-            min-height: 280px;
+            min-height: 420px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -420,7 +446,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 280px;
+            height: 420px;
             background: #f8f9fa;
         }
 
@@ -506,6 +532,134 @@
         .has-visualization .placeholder-visualization {
             display: none;
         }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        .visualization-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.72);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 40px 60px;
+            box-sizing: border-box;
+        }
+
+        .visualization-modal.active {
+            display: flex;
+        }
+
+        .visualization-modal .modal-content {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 25px 60px -24px rgba(15, 23, 42, 0.45);
+            width: 100%;
+            height: 100%;
+            max-width: 1200px;
+            max-height: 760px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-toolbar h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #1f2937;
+        }
+
+.modal-toolbar .modal-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+        .modal-button {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-button:hover {
+            border-color: #4f46e5;
+            color: #4338ca;
+        }
+
+        .modal-button.primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff;
+            border-color: transparent;
+        }
+
+.modal-button.primary:hover {
+    opacity: 0.92;
+}
+
+.modal-canvas {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+            background: #f3f4f6;
+            cursor: grab;
+        }
+
+        .modal-canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .modal-diagram {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            transform-origin: center center;
+}
+
+.modal-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #6b7280;
+    font-style: italic;
+}
+
+.modal-zoom-input {
+    width: 70px;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #1f2937;
+    text-align: right;
+}
+
+.modal-zoom-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.modal-zoom-suffix {
+    font-size: 14px;
+    color: #4b5563;
+}
 
         /* 用户信息样式 */
         .user-info {
@@ -983,12 +1137,15 @@
 
             <div class="zoom-controls">
                 <button class="zoom-button" onclick="adjustZoom(-0.1)">-</button>
-                <div class="zoom-level" id="zoom-level">100%</div>
+                <label class="zoom-input-wrapper">
+                    <input type="number" class="zoom-input" id="zoom-input" value="100" min="10" max="400" step="1">
+                    <span class="zoom-suffix">%</span>
+                </label>
                 <button class="zoom-button" onclick="adjustZoom(0.1)">+</button>
                 <button class="zoom-button" onclick="resetZoom()">重置</button>
-                <button class="zoom-button" id="fullscreen-btn" onclick="toggleVisualizationFullscreen()">全屏</button>
-                <button class="zoom-button" onclick="downloadDiagram()">下载流程图</button>
-                <button class="zoom-button" onclick="downloadMermaidCode()">下载代码</button>
+                <button class="zoom-button" id="fullscreen-btn" onclick="openVisualizationModal()">放大查看</button>
+                <button class="zoom-button" id="download-diagram-btn" onclick="downloadDiagram()">下载流程图</button>
+                <button class="zoom-button" id="download-code-btn" onclick="downloadMermaidCode()">下载代码</button>
             </div>
             <div class="visualization-wrapper">
                 <div id="mermaid-container">
@@ -1018,6 +1175,30 @@
         </div>
     </div>
 
+    <div class="visualization-modal" id="visualization-modal">
+        <div class="modal-content">
+            <div class="modal-toolbar">
+                <h3>推理可视化放大查看</h3>
+                <div class="modal-controls">
+                    <button class="modal-button" id="modal-zoom-out">缩小</button>
+                    <div class="modal-zoom-wrapper">
+                        <input type="number" class="modal-zoom-input" id="modal-zoom-input" value="100" min="10" max="400" step="1">
+                        <span class="modal-zoom-suffix">%</span>
+                    </div>
+                    <button class="modal-button" id="modal-zoom-in">放大</button>
+                    <button class="modal-button" id="modal-download" disabled>下载</button>
+                    <button class="modal-button" id="modal-reset">重置</button>
+                    <button class="modal-button primary" id="modal-close">关闭</button>
+                </div>
+            </div>
+            <div class="modal-canvas" id="modal-canvas">
+                <div class="modal-diagram" id="modal-diagram">
+                    <div class="modal-placeholder">暂无可视化内容</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize Mermaid
         mermaid.initialize({
@@ -1034,7 +1215,7 @@
         // Global variables
         let currentZoom = 1.0;
         const MIN_ZOOM = 0.1;
-        const MAX_ZOOM = 3.0;
+        const MAX_ZOOM = 4.0;
         let lastMermaidCode = "";
         let lastSvgDimensions = { width: 0, height: 0 };
         let currentPage = 1;
@@ -1046,6 +1227,23 @@
         let historySearchDebounce = null;
         let methodNameMap = {};
         let isVisualizationAllowed = document.body.dataset.showVisualization !== 'false';
+        const visualizationModal = document.getElementById('visualization-modal');
+        const modalDiagram = document.getElementById('modal-diagram');
+        const modalCanvas = document.getElementById('modal-canvas');
+        const modalZoomInBtn = document.getElementById('modal-zoom-in');
+        const modalZoomOutBtn = document.getElementById('modal-zoom-out');
+        const modalResetBtn = document.getElementById('modal-reset');
+        const modalCloseBtn = document.getElementById('modal-close');
+        const modalZoomInput = document.getElementById('modal-zoom-input');
+        const modalDownloadBtn = document.getElementById('modal-download');
+        let modalZoom = 1.0;
+        let modalPanX = 0;
+        let modalPanY = 0;
+        let isModalOpen = false;
+        let isModalDragging = false;
+        let modalDragStartX = 0;
+        let modalDragStartY = 0;
+        let modalActiveCode = '';
 
         // Initialize configuration
         async function initializeConfig() {
@@ -1109,9 +1307,11 @@
                     await handleMethodChange(defaultMethod);
                 }
 
+                updateMagnifyButton();
             } catch (error) {
                 console.error('Failed to load configuration:', error);
                 showError('配置加载失败。请刷新页面重试。');
+                updateMagnifyButton();
             }
         }
 
@@ -1505,6 +1705,7 @@
                 console.error('Error displaying visualization:', error);
                 diagram.innerHTML = '<div class="placeholder-visualization">可视化显示失败</div>';
             }
+            updateMagnifyButton();
         }
 
         // Visualization controls
@@ -1518,60 +1719,39 @@
             window.isZoomLocked = false;
         }
 
-        function adjustZoom(delta) {
+        function setZoom(value) {
             if (!isVisualizationAllowed || window.isZoomLocked) return;
-
-            currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, currentZoom + delta));
+            const parsed = Number(value);
+            if (Number.isNaN(parsed)) {
+                return;
+            }
+            currentZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, parsed));
             updateZoomDisplay();
             applyZoom();
+        }
+
+        function adjustZoom(delta) {
+            setZoom(currentZoom + delta);
         }
 
         function resetZoom() {
-            if (!isVisualizationAllowed || window.isZoomLocked) return;
-
-            currentZoom = 1.0;
-            updateZoomDisplay();
-            applyZoom();
+            setZoom(1.0);
         }
 
         function updateZoomDisplay() {
-            const zoomDisplay = document.getElementById('zoom-level');
-            if (zoomDisplay) {
-                zoomDisplay.textContent = Math.round(currentZoom * 100) + '%';
+            const zoomInput = document.getElementById('zoom-input');
+            if (zoomInput) {
+                zoomInput.value = Math.round(currentZoom * 100);
             }
-        }
-
-        function computeFullScreenScale(svg, container) {
-            if (!svg || !container) return 1;
-            if (!lastSvgDimensions.width || !lastSvgDimensions.height) {
-                captureSvgDimensions(svg, true);
-            }
-            const rect = container.getBoundingClientRect();
-            if (!rect.width || !rect.height) {
-                return 1;
-            }
-            const scaleX = rect.width / (lastSvgDimensions.width || rect.width);
-            const scaleY = rect.height / (lastSvgDimensions.height || rect.height);
-            return Math.min(scaleX, scaleY, 4);
         }
 
         function applyZoom() {
             if (!isVisualizationAllowed) return;
             const svg = document.querySelector('#mermaid-diagram svg');
-            const container = document.getElementById('mermaid-container');
-            if (!svg || !container) return;
+            if (!svg) return;
 
-            if (!lastSvgDimensions.width || !lastSvgDimensions.height) {
-                captureSvgDimensions(svg, true);
-            }
-
-            let scale = currentZoom;
-            if (isFullscreenActive()) {
-                scale *= computeFullScreenScale(svg, container);
-            }
-
-            svg.style.transform = `scale(${scale})`;
-            svg.style.transformOrigin = 'top left';
+            svg.style.transform = `scale(${currentZoom})`;
+            svg.style.transformOrigin = 'center center';
         }
 
         function normalizeMermaidSvg(svg) {
@@ -1629,60 +1809,310 @@
             return { width, height };
         }
 
+        function updateMagnifyButton() {
+            const btn = document.getElementById('fullscreen-btn');
+            if (!btn) return;
+            btn.disabled = !isVisualizationAllowed || !lastMermaidCode;
+            updateDownloadButtons();
+            updateModalDownloadState();
+        }
+
+        function updateDownloadButtons() {
+            const downloadDiagramBtn = document.getElementById('download-diagram-btn');
+            const downloadCodeBtn = document.getElementById('download-code-btn');
+            const disabled = !isVisualizationAllowed || !lastMermaidCode;
+            if (downloadDiagramBtn) {
+                downloadDiagramBtn.disabled = disabled;
+            }
+            if (downloadCodeBtn) {
+                downloadCodeBtn.disabled = disabled;
+            }
+        }
+
+        function updateModalDownloadState() {
+            if (!modalDownloadBtn) return;
+            const hasSvg = modalDiagram && modalDiagram.querySelector('svg');
+            const shouldDisable = !modalActiveCode || (isModalOpen && !hasSvg);
+            modalDownloadBtn.disabled = shouldDisable;
+        }
+
+        function openVisualizationModal(code) {
+            if (!isVisualizationAllowed) {
+                showInfo('当前账号未启用可视化功能');
+                return;
+            }
+            const targetCode = code || lastMermaidCode;
+            if (!targetCode) {
+                showInfo('暂无可视化内容');
+                return;
+            }
+
+            modalActiveCode = targetCode;
+            modalZoom = 1.0;
+            modalPanX = 0;
+            modalPanY = 0;
+            isModalOpen = true;
+            if (modalZoomInput) {
+                modalZoomInput.value = '100';
+            }
+
+            document.body.classList.add('modal-open');
+            visualizationModal.classList.add('active');
+            updateModalDownloadState();
+            renderModalDiagram();
+        }
+
+        function closeVisualizationModal() {
+            if (!isModalOpen) return;
+            isModalOpen = false;
+            document.body.classList.remove('modal-open');
+            visualizationModal.classList.remove('active');
+            if (modalCanvas) {
+                modalCanvas.classList.remove('dragging');
+            }
+            isModalDragging = false;
+            modalActiveCode = '';
+            updateModalDownloadState();
+        }
+
+        function renderModalDiagram() {
+            if (!modalDiagram) return;
+            if (!modalActiveCode) {
+                modalDiagram.innerHTML = '<div class="modal-placeholder">暂无可视化内容</div>';
+                updateModalDownloadState();
+                return;
+            }
+
+            modalDiagram.innerHTML = '<div class="modal-placeholder">正在生成图像...</div>';
+
+            const modalId = `modal-mermaid-${Date.now()}`;
+            mermaid.render(modalId, modalActiveCode).then(result => {
+                modalDiagram.innerHTML = result.svg;
+                const svg = modalDiagram.querySelector('svg');
+                if (svg) {
+                    normalizeMermaidSvg(svg);
+                }
+                updateModalTransform();
+                updateModalZoomDisplay();
+                updateModalDownloadState();
+            }).catch(error => {
+                console.error('渲染可视化失败:', error);
+                modalDiagram.innerHTML = '<div class="modal-placeholder">可视化渲染失败</div>';
+                updateModalDownloadState();
+            });
+        }
+
+        function updateModalTransform() {
+            if (!modalDiagram) return;
+            modalDiagram.style.transform = `translate(${modalPanX}px, ${modalPanY}px) scale(${modalZoom}) translate(-50%, -50%)`;
+        }
+
+        function updateModalZoomDisplay() {
+            if (modalZoomInput) {
+                modalZoomInput.value = Math.round(modalZoom * 100);
+            }
+        }
+
+        function setModalZoom(value) {
+            modalZoom = Math.min(4, Math.max(0.25, value));
+            updateModalTransform();
+            updateModalZoomDisplay();
+        }
+
+        function zoomModal(delta) {
+            if (!isModalOpen) return;
+            setModalZoom(modalZoom + delta);
+        }
+
+        function resetModalView() {
+            setModalZoom(1.0);
+            modalPanX = 0;
+            modalPanY = 0;
+            updateModalTransform();
+        }
+
+        function onModalPointerDown(event) {
+            if (!isModalOpen || !modalCanvas) return;
+            isModalDragging = true;
+            modalCanvas.classList.add('dragging');
+            if (event.pointerId !== undefined && modalCanvas.setPointerCapture) {
+                try {
+                    modalCanvas.setPointerCapture(event.pointerId);
+                } catch (err) {
+                    console.warn('Pointer capture failed:', err);
+                }
+            }
+            modalDragStartX = event.clientX;
+            modalDragStartY = event.clientY;
+            event.preventDefault();
+        }
+
+        function onModalPointerMove(event) {
+            if (!isModalDragging) return;
+            const deltaX = event.clientX - modalDragStartX;
+            const deltaY = event.clientY - modalDragStartY;
+            modalPanX += deltaX;
+            modalPanY += deltaY;
+            modalDragStartX = event.clientX;
+            modalDragStartY = event.clientY;
+            updateModalTransform();
+            event.preventDefault();
+        }
+
+        function endModalDrag(event) {
+            if (!isModalDragging) return;
+            isModalDragging = false;
+            modalCanvas.classList.remove('dragging');
+            if (event && event.pointerId !== undefined && modalCanvas.releasePointerCapture) {
+                try {
+                    modalCanvas.releasePointerCapture(event.pointerId);
+                } catch (err) {
+                    console.warn('Release pointer capture failed:', err);
+                }
+            }
+        }
+
         // Download functions
-        function downloadDiagram() {
+        async function exportDiagramToImage(code, filenameBase, zoomFactor = 1) {
+            if (!code) {
+                throw new Error('暂无可视化数据');
+            }
+
+            let tempContainer = null;
+            const renderId = `download-${Date.now()}`;
+            try {
+                const renderResult = await mermaid.render(renderId, code);
+                tempContainer = document.createElement('div');
+                tempContainer.style.position = 'absolute';
+                tempContainer.style.left = '-10000px';
+                tempContainer.style.top = '-10000px';
+                tempContainer.style.pointerEvents = 'none';
+                tempContainer.style.opacity = '0';
+                tempContainer.innerHTML = renderResult.svg || '';
+                document.body.appendChild(tempContainer);
+
+                const svgElement = tempContainer.querySelector('svg');
+                if (!svgElement) {
+                    throw new Error('图表渲染失败');
+                }
+                normalizeMermaidSvg(svgElement);
+                const { width, height } = captureSvgDimensions(svgElement, true);
+                if (!width || !height) {
+                    throw new Error('无法获取图表尺寸');
+                }
+
+                const clonedSvg = svgElement.cloneNode(true);
+                if (!clonedSvg.getAttribute('xmlns')) {
+                    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+
+                const xml = new XMLSerializer().serializeToString(clonedSvg);
+                const DOMURL = window.URL || window.webkitURL || window;
+                const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+                const url = DOMURL.createObjectURL(svgBlob);
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+
+                const scale = Math.min(
+                    4,
+                    Math.max(1.5, (2000 / Math.min(width, height)) * Math.max(zoomFactor, 1))
+                );
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = Math.max(1, Math.round(width * scale));
+                canvas.height = Math.max(1, Math.round(height * scale));
+
+                await new Promise((resolve, reject) => {
+                    img.onload = () => {
+                        try {
+                            ctx.setTransform(scale, 0, 0, scale, 0, 0);
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0);
+                        } finally {
+                            DOMURL.revokeObjectURL(url);
+                        }
+
+                        const triggerDownload = (href, shouldRevoke = false) => {
+                            const link = document.createElement('a');
+                            link.download = `${filenameBase}.png`;
+                            link.href = href;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            if (shouldRevoke) {
+                                setTimeout(() => DOMURL.revokeObjectURL(href), 1000);
+                            }
+                        };
+
+                        if (canvas.toBlob) {
+                            canvas.toBlob(blob => {
+                                if (blob) {
+                                    const blobUrl = DOMURL.createObjectURL(blob);
+                                    triggerDownload(blobUrl, true);
+                                } else {
+                                    triggerDownload(canvas.toDataURL('image/png'));
+                                }
+                                resolve();
+                            }, 'image/png');
+                        } else {
+                            triggerDownload(canvas.toDataURL('image/png'));
+                            resolve();
+                        }
+                    };
+
+                    img.onerror = (error) => {
+                        DOMURL.revokeObjectURL(url);
+                        reject(error || new Error('图像生成失败'));
+                    };
+                });
+
+                return true;
+            } finally {
+                if (tempContainer && tempContainer.parentNode) {
+                    tempContainer.parentNode.removeChild(tempContainer);
+                }
+            }
+        }
+
+        async function downloadDiagram(options) {
             if (!isVisualizationAllowed) {
                 showInfo('当前账号未启用可视化功能');
                 return;
             }
 
-            const svg = document.querySelector('#mermaid-diagram svg');
-            if (!svg) {
-                showInfo('没有可下载的图表');
+            const preferModal = options && options.preferModal;
+            const useModal = preferModal && isModalOpen;
+            const code = useModal ? modalActiveCode : lastMermaidCode;
+            if (!code) {
+                showInfo(useModal ? '放大视图暂无可导出内容' : '当前没有可导出的可视化内容');
                 return;
             }
 
-            const { width, height } = captureSvgDimensions(svg, true);
-            if (!width || !height) {
-                showError('无法获取图表尺寸，导出失败');
-                return;
+            const triggerButton = useModal ? modalDownloadBtn : document.getElementById('download-diagram-btn');
+            if (triggerButton) {
+                triggerButton.disabled = true;
             }
 
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const scaleFactor = Math.min(4, Math.max(2, 2000 / Math.min(width, height)));
-            canvas.width = width * scaleFactor;
-            canvas.height = height * scaleFactor;
+            try {
+                await exportDiagramToImage(
+                    code,
+                    useModal ? 'reasoning-diagram-zoomed' : 'reasoning-diagram',
+                    useModal ? Math.max(modalZoom, 1) : Math.max(currentZoom, 1)
+                );
+            } catch (error) {
+                console.error('导出流程图失败:', error);
+                showError('导出流程图失败，请稍后重试');
+            } finally {
+                if (triggerButton) {
+                    triggerButton.disabled = false;
+                }
+                updateDownloadButtons();
+                updateModalDownloadState();
+            }
+        }
 
-            const xml = new XMLSerializer().serializeToString(svg);
-            const DOMURL = window.URL || window.webkitURL || window;
-            const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
-            const url = DOMURL.createObjectURL(svgBlob);
-            const img = new Image();
-            img.width = width;
-            img.height = height;
-
-            img.onload = function() {
-                ctx.setTransform(scaleFactor, 0, 0, scaleFactor, 0, 0);
-                ctx.drawImage(img, 0, 0);
-                DOMURL.revokeObjectURL(url);
-
-                canvas.toBlob(function(blob) {
-                    const link = document.createElement('a');
-                    link.download = 'reasoning-diagram.png';
-                    const blobUrl = DOMURL.createObjectURL(blob);
-                    link.href = blobUrl;
-                    link.click();
-                    setTimeout(() => DOMURL.revokeObjectURL(blobUrl), 1000);
-                }, 'image/png');
-            };
-
-            img.onerror = function() {
-                showError('图表导出失败，请稍后重试');
-                DOMURL.revokeObjectURL(url);
-            };
-
-            img.src = url;
+        function downloadModalDiagram() {
+            downloadDiagram({ preferModal: true });
         }
 
         function downloadMermaidCode() {
@@ -1714,81 +2144,13 @@
             if (container) {
                 container.classList.remove('has-visualization');
             }
+            closeVisualizationModal();
             lastMermaidCode = '';
             lastSvgDimensions = { width: 0, height: 0 };
-            updateFullscreenButton();
+            currentZoom = 1.0;
+            updateZoomDisplay();
+            updateMagnifyButton();
         }
-
-        function isFullscreenActive() {
-            return Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
-        }
-
-        function toggleVisualizationFullscreen() {
-            if (!isVisualizationAllowed) {
-                showInfo('当前账号未启用可视化功能');
-                return;
-            }
-
-            const wrapper = document.querySelector('.visualization-wrapper');
-            if (!wrapper) {
-                showInfo('找不到可视化区域，无法切换全屏。');
-                return;
-            }
-
-            const request = wrapper.requestFullscreen || wrapper.webkitRequestFullscreen || wrapper.msRequestFullscreen;
-            const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
-
-            if (!isFullscreenActive()) {
-                if (!request) {
-                    showInfo('当前浏览器不支持全屏模式。');
-                    updateFullscreenButton();
-                    return;
-                }
-
-                try {
-                    const result = request.call(wrapper);
-                    applyZoom();
-                    if (result && typeof result.then === 'function') {
-                        result.catch(err => {
-                            console.error('进入全屏失败:', err);
-                            showError('进入全屏失败：' + (err?.message || '未知错误'));
-                            updateFullscreenButton();
-                        });
-                    }
-                } catch (err) {
-                    console.error('进入全屏失败:', err);
-                    showError('进入全屏失败：' + (err?.message || '未知错误'));
-                    updateFullscreenButton();
-                }
-            } else if (exit) {
-                exit.call(document);
-                setTimeout(() => applyZoom(), 50);
-            }
-        }
-
-        function updateFullscreenButton() {
-            const btn = document.getElementById('fullscreen-btn');
-            if (!btn) return;
-            btn.disabled = !isVisualizationAllowed;
-            btn.textContent = isFullscreenActive() ? '退出全屏' : '全屏';
-        }
-
-        function handleFullscreenChange() {
-            const wrapper = document.querySelector('.visualization-wrapper');
-            if (wrapper) {
-                if (isFullscreenActive()) {
-                    wrapper.classList.add('fullscreen-active');
-                } else {
-                    wrapper.classList.remove('fullscreen-active');
-                }
-            }
-            updateFullscreenButton();
-            applyZoom();
-        }
-
-        ['fullscreenchange', 'webkitfullscreenchange', 'msfullscreenchange'].forEach(eventName => {
-            document.addEventListener(eventName, handleFullscreenChange);
-        });
 
         const escapeHtml = (unsafe = '') => String(unsafe)
             .replace(/&/g, '&amp;')
@@ -1807,6 +2169,7 @@
             try {
                 return new Date(value).toLocaleString('zh-CN', {
                     hour12: false,
+                    timeZone: 'Asia/Shanghai',
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
@@ -2094,6 +2457,63 @@
             });
         }
 
+        if (modalCloseBtn) {
+            modalCloseBtn.addEventListener('click', closeVisualizationModal);
+        }
+        if (modalResetBtn) {
+            modalResetBtn.addEventListener('click', resetModalView);
+        }
+        if (modalZoomInBtn) {
+            modalZoomInBtn.addEventListener('click', () => zoomModal(0.15));
+        }
+        if (modalZoomOutBtn) {
+            modalZoomOutBtn.addEventListener('click', () => zoomModal(-0.15));
+        }
+        if (modalDownloadBtn) {
+            modalDownloadBtn.addEventListener('click', downloadModalDiagram);
+        }
+        if (modalZoomInput) {
+            const handleZoomInput = () => {
+                const value = Number(modalZoomInput.value);
+                if (!Number.isNaN(value) && value > 0) {
+                    setModalZoom(value / 100);
+                } else {
+                    modalZoomInput.value = Math.round(modalZoom * 100);
+                }
+            };
+            modalZoomInput.addEventListener('change', handleZoomInput);
+            modalZoomInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    handleZoomInput();
+                }
+            });
+        }
+        if (modalCanvas) {
+            modalCanvas.addEventListener('pointerdown', onModalPointerDown);
+            modalCanvas.addEventListener('pointermove', onModalPointerMove);
+            modalCanvas.addEventListener('pointerup', endModalDrag);
+            modalCanvas.addEventListener('pointerleave', endModalDrag);
+            modalCanvas.addEventListener('pointercancel', endModalDrag);
+            modalCanvas.addEventListener('wheel', (event) => {
+                if (!isModalOpen) return;
+                event.preventDefault();
+                const delta = event.deltaY < 0 ? 0.1 : -0.1;
+                zoomModal(delta);
+            }, { passive: false });
+        }
+        if (visualizationModal) {
+            visualizationModal.addEventListener('click', (event) => {
+                if (event.target === visualizationModal) {
+                    closeVisualizationModal();
+                }
+            });
+        }
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && isModalOpen) {
+                closeVisualizationModal();
+            }
+        });
+
         function autoResizeQuestion() {
             const textarea = document.getElementById('question');
             const buttons = document.querySelector('.search-buttons');
@@ -2123,7 +2543,25 @@
             initializeConfig();
             loadHistory(1);
             updateZoomDisplay();
-            updateFullscreenButton();
+            updateMagnifyButton();
+
+            const zoomInput = document.getElementById('zoom-input');
+            if (zoomInput && !zoomInput.dataset.bound) {
+                zoomInput.dataset.bound = 'true';
+                const handleZoomInput = () => {
+                    const value = Number(zoomInput.value);
+                    if (!Number.isNaN(value) && value > 0) {
+                        setZoom(value / 100);
+                    }
+                    updateZoomDisplay();
+                };
+                zoomInput.addEventListener('change', handleZoomInput);
+                zoomInput.addEventListener('keyup', (event) => {
+                    if (event.key === 'Enter') {
+                        handleZoomInput();
+                    }
+                });
+            }
 
             const historySearchInput = document.getElementById('history-search');
             if (historySearchInput && !historySearchInput.dataset.bound) {

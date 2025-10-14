@@ -386,6 +386,282 @@
             font-style: italic;
         }
 
+        .user-pagination {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .user-pagination .btn {
+            min-width: 90px;
+        }
+
+        .btn-outline-indigo {
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px solid #6366f1;
+            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-outline-indigo:hover {
+            background: #c7d2fe;
+            color: #312e81;
+            box-shadow: 0 12px 24px -18px rgba(99, 102, 241, 0.8);
+        }
+
+        .btn-indigo {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 15px 35px -20px rgba(99, 102, 241, 0.75);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-indigo:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 40px -18px rgba(99, 102, 241, 0.85);
+        }
+
+        .btn-outline-teal {
+            background: #ecfdf5;
+            color: #0f766e;
+            border: 1px solid #34d399;
+            transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-outline-teal:hover {
+            background: #d1fae5;
+            color: #047857;
+            box-shadow: 0 12px 24px -18px rgba(16, 185, 129, 0.6);
+        }
+
+        .btn-teal {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 15px 35px -20px rgba(13, 148, 136, 0.7);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .btn-teal:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 40px -18px rgba(13, 148, 136, 0.8);
+        }
+
+        .history-visualization-controls {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .history-zoom-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .history-action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .history-btn,
+        .history-action-button {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #374151;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .history-btn:hover,
+        .history-action-button:hover {
+            border-color: #4f46e5;
+            color: #4338ca;
+        }
+
+        .history-action-button.danger {
+            border-color: #fca5a5;
+            color: #b91c1c;
+            background: #fef2f2;
+        }
+
+        .history-action-button.danger:hover {
+            background: #fee2e2;
+            color: #7f1d1d;
+            border-color: #f87171;
+        }
+
+        .history-zoom-input {
+            width: 64px;
+            padding: 5px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #1f2937;
+            text-align: right;
+        }
+
+        .history-zoom-suffix {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .visualization-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.72);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 40px 60px;
+            box-sizing: border-box;
+        }
+
+        .visualization-modal.active {
+            display: flex;
+        }
+
+        .visualization-modal .modal-content {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 25px 60px -24px rgba(15, 23, 42, 0.45);
+            width: 100%;
+            height: 100%;
+            max-width: 1200px;
+            max-height: 760px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .visualization-modal .modal-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .visualization-modal .modal-toolbar h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #1f2937;
+        }
+
+        .visualization-modal .modal-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .visualization-modal .modal-button {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #374151;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .visualization-modal .modal-button:hover {
+            border-color: #4f46e5;
+            color: #4338ca;
+        }
+
+        .visualization-modal .modal-button.primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .visualization-modal .modal-button.primary:hover {
+            opacity: 0.92;
+        }
+
+        .visualization-modal .modal-canvas {
+            position: relative;
+            flex: 1;
+            overflow: hidden;
+            background: #f3f4f6;
+            cursor: grab;
+        }
+
+        .visualization-modal .modal-canvas.dragging {
+            cursor: grabbing;
+        }
+
+        .visualization-modal .modal-diagram {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(0, 0) scale(1) translate(-50%, -50%);
+            transform-origin: center center;
+        }
+
+        .visualization-modal .modal-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .visualization-modal .modal-zoom-input {
+            width: 70px;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #1f2937;
+            text-align: right;
+        }
+
+        .visualization-modal .modal-zoom-wrapper {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .visualization-modal .modal-zoom-suffix {
+            font-size: 14px;
+            color: #4b5563;
+        }
+
+        .user-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .user-actions .divider {
+            color: #d1d5db;
+        }
+
+        .table-link.danger {
+            color: #b91c1c;
+        }
+
+        .table-link.danger:hover {
+            color: #7f1d1d;
+        }
+
         .message {
             margin-bottom: 18px;
             padding: 14px 18px;
@@ -415,7 +691,80 @@
             display: block;
         }
 
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 24px;
+        }
+
+        .admin-sidebar {
+            background: #f9fafb;
+            border-radius: 16px;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            position: sticky;
+            top: 32px;
+            height: fit-content;
+            align-self: start;
+        }
+
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .admin-nav .nav-item {
+            display: block;
+            padding: 12px 16px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            color: #1f2937;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .admin-nav .nav-item:hover {
+            border-color: #6366f1;
+            color: #4f46e5;
+            transform: translateX(2px);
+        }
+
+        .admin-nav .nav-item.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 12px 24px -18px rgba(99, 102, 241, 0.9);
+        }
+
+        .admin-main {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .section-group {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
         @media (max-width: 768px) {
+            .admin-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-sidebar {
+                position: static;
+                order: 2;
+            }
+
+            .admin-main {
+                order: 1;
+            }
+
             .admin-container {
                 padding: 20px 16px 60px;
             }
@@ -441,19 +790,29 @@
 </head>
 <body>
     <div class="admin-container">
-        <header class="admin-header">
-            <div>
-                <h1>ReasonGraph 管理中心</h1>
-                <p>欢迎，{{ admin.username }}（管理员）</p>
-            </div>
-            <div class="header-actions">
-                <a class="header-link" href="{{ url_for('index') }}">返回应用</a>
-                <a class="header-link" href="{{ url_for('logout') }}">退出登录</a>
-            </div>
-        </header>
+        <div class="admin-layout">
+            <aside class="admin-sidebar">
+                <nav class="admin-nav">
+                    <a href="#section-users" class="nav-item active" data-section="users">管理用户</a>
+                    <a href="#section-keys" class="nav-item" data-section="keys">API 密钥管理</a>
+                    <a href="#section-history" class="nav-item" data-section="history">历史记录检索</a>
+                </nav>
+            </aside>
+            <div class="admin-main">
+                <header class="admin-header">
+                    <div>
+                        <h1>ReasonGraph 管理中心</h1>
+                        <p>欢迎，{{ admin.username }}（管理员）</p>
+                    </div>
+                    <div class="header-actions">
+                        <a class="header-link" href="{{ url_for('index') }}">返回应用</a>
+                        <a class="header-link" href="{{ url_for('logout') }}">退出登录</a>
+                    </div>
+                </header>
 
-        <div id="admin-message" class="message"></div>
+                <div id="admin-message" class="message"></div>
 
+                <div class="section-group" id="section-users">
         <section class="card" id="create-user-card">
             <h2>创建新用户</h2>
             <form id="create-user-form">
@@ -490,7 +849,13 @@
                 <h2>用户列表</h2>
                 <div class="section-actions">
                     <input type="text" id="user-search" class="input" placeholder="搜索用户名或邮箱">
-                    <button type="button" class="btn btn-secondary" id="refresh-users-btn">刷新</button>
+                    <select id="user-per-page" class="select" style="min-width:140px;">
+                        <option value="10">每页 10 条</option>
+                        <option value="20" selected>每页 20 条</option>
+                        <option value="30">每页 30 条</option>
+                        <option value="50">每页 50 条</option>
+                    </select>
+                    <button type="button" class="btn btn-outline-teal" id="refresh-users-btn">刷新</button>
                 </div>
             </div>
             <div class="table-wrapper">
@@ -504,15 +869,25 @@
                             <th>最后登录</th>
                             <th>总会话数</th>
                             <th>可视化界面</th>
+                            <th style="min-width:160px;">操作</th>
                         </tr>
                     </thead>
                     <tbody id="user-table-body">
-                        <tr><td colspan="7" class="empty-state">加载中...</td></tr>
+                        <tr><td colspan="8" class="empty-state">加载中...</td></tr>
                     </tbody>
                 </table>
             </div>
+            <div class="user-pagination" id="user-pagination">
+                <div class="user-page-info" id="user-page-info">共 0 条记录</div>
+                <div class="user-pagination-actions">
+                    <button type="button" class="btn btn-teal" id="user-prev-btn" disabled>上一页</button>
+                    <button type="button" class="btn btn-teal" id="user-next-btn" disabled>下一页</button>
+                </div>
+            </div>
         </section>
+                </div>
 
+                <div class="section-group" id="section-keys">
         <section class="card" id="api-key-card">
             <h2>API 密钥管理</h2>
             <div class="api-card-grid">
@@ -550,7 +925,9 @@
                 </div>
             </div>
         </section>
+                </div>
 
+                <div class="section-group" id="section-history">
         <section class="card" id="history-card">
             <div class="section-header">
                 <h2>历史记录检索</h2>
@@ -650,6 +1027,33 @@
                 <p style="margin:0; color:#6b7280;">选择一条记录查看详细内容。</p>
             </div>
         </section>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="visualization-modal" id="history-visualization-modal">
+        <div class="modal-content">
+            <div class="modal-toolbar">
+                <h3>可视化放大查看</h3>
+                <div class="modal-controls">
+                    <button class="modal-button" id="history-modal-zoom-out">缩小</button>
+                    <div class="modal-zoom-wrapper">
+                        <input type="number" class="modal-zoom-input" id="history-modal-zoom-input" value="100" min="10" max="400" step="1">
+                        <span class="modal-zoom-suffix">%</span>
+                    </div>
+                    <button class="modal-button" id="history-modal-zoom-in">放大</button>
+                    <button class="modal-button" id="history-modal-download" disabled>下载</button>
+                    <button class="modal-button" id="history-modal-reset">重置</button>
+                    <button class="modal-button primary" id="history-modal-close">关闭</button>
+                </div>
+            </div>
+            <div class="modal-canvas" id="history-modal-canvas">
+                <div class="modal-diagram" id="history-modal-diagram">
+                    <div class="modal-placeholder">暂无可视化内容</div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -663,8 +1067,67 @@
 
         const providerOptionsData = {{ provider_options | tojson }};
 
+        const navItems = document.querySelectorAll('.admin-nav .nav-item');
+        const sectionGroups = document.querySelectorAll('.section-group');
+
+        function setActiveNav(sectionId) {
+            navItems.forEach(item => {
+                const target = (item.getAttribute('href') || '').replace('#', '');
+                item.classList.toggle('active', target === sectionId);
+            });
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', (event) => {
+                const targetId = (item.getAttribute('href') || '').replace('#', '');
+                if (!targetId) return;
+                event.preventDefault();
+                const section = document.getElementById(targetId);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setActiveNav(targetId);
+                }
+            });
+        });
+
+        if (sectionGroups.length) {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        setActiveNav(entry.target.id);
+                    }
+                });
+            }, {
+                rootMargin: '-40% 0px -40% 0px',
+                threshold: 0.2
+            });
+
+            sectionGroups.forEach(section => observer.observe(section));
+            setActiveNav(sectionGroups[0].id);
+        }
+
         mermaid.initialize({ startOnLoad: false, theme: 'default' });
         let historyMermaidCounter = 0;
+        let historyMermaidCode = '';
+        let historyZoom = 1.0;
+        let historySvgDimensions = { width: 0, height: 0 };
+        let historyModalCode = '';
+        let historyModalZoom = 1.0;
+        let historyModalPanX = 0;
+        let historyModalPanY = 0;
+        let historyModalDragging = false;
+        let historyModalDragStartX = 0;
+        let historyModalDragStartY = 0;
+
+        const historyModal = document.getElementById('history-visualization-modal');
+        const historyModalCanvas = document.getElementById('history-modal-canvas');
+        const historyModalDiagram = document.getElementById('history-modal-diagram');
+        const historyModalZoomInBtn = document.getElementById('history-modal-zoom-in');
+        const historyModalZoomOutBtn = document.getElementById('history-modal-zoom-out');
+        const historyModalResetBtn = document.getElementById('history-modal-reset');
+        const historyModalCloseBtn = document.getElementById('history-modal-close');
+        const historyModalZoomInput = document.getElementById('history-modal-zoom-input');
+        const historyModalDownloadBtn = document.getElementById('history-modal-download');
 
         const globalApiForm = document.getElementById('global-api-form');
         const userApiForm = document.getElementById('user-api-form');
@@ -876,22 +1339,467 @@
             }
         }
 
+        function normalizeMermaidSvg(svg) {
+            const { width, height } = captureSvgDimensions(svg);
+            if (width && height) {
+                svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            }
+            svg.removeAttribute('width');
+            svg.removeAttribute('height');
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+            svg.style.width = '100%';
+            svg.style.height = 'auto';
+            svg.style.maxWidth = '100%';
+            svg.style.maxHeight = '100%';
+        }
+
+        function captureSvgDimensions(svg, silent = false) {
+            let width = 0;
+            let height = 0;
+
+            try {
+                const viewBox = svg.getAttribute('viewBox');
+                if (viewBox) {
+                    const parts = viewBox.split(/\s+/).map(Number);
+                    if (parts.length === 4) {
+                        width = parts[2];
+                        height = parts[3];
+                    }
+                }
+            } catch (error) {
+                if (!silent) {
+                    console.warn('读取 viewBox 失败:', error);
+                }
+            }
+
+            if (!width || !height) {
+                try {
+                    const bbox = svg.getBBox();
+                    width = bbox.width;
+                    height = bbox.height;
+                } catch (error) {
+                    if (!silent) {
+                        console.warn('读取 SVG 边界失败:', error);
+                    }
+                }
+            }
+
+            if (!width || !height) {
+                const rect = svg.getBoundingClientRect();
+                width = rect.width || 1024;
+                height = rect.height || 768;
+            }
+
+            historySvgDimensions = { width, height };
+            return { width, height };
+        }
+
         function renderHistoryVisualization(visualizationData) {
             const container = document.getElementById('history-mermaid');
             if (!container) return;
 
-            if (!visualizationData || !visualizationData.code) {
+            historyMermaidCode = visualizationData && visualizationData.code ? visualizationData.code : '';
+            historyZoom = 1.0;
+
+            if (!historyMermaidCode) {
                 container.innerHTML = '<div class="history-mermaid-placeholder">暂无可视化数据</div>';
+                updateHistoryZoomDisplay();
+                updateHistoryButtonsState();
                 return;
             }
 
+            container.innerHTML = '<div class="history-mermaid-placeholder">正在生成图像...</div>';
             const diagramId = `history-mermaid-${Date.now()}-${historyMermaidCounter++}`;
-            mermaid.render(diagramId, visualizationData.code).then(result => {
+            mermaid.render(diagramId, historyMermaidCode).then(result => {
                 container.innerHTML = result.svg;
+                applyHistoryZoom();
+                updateHistoryZoomDisplay();
+                updateHistoryButtonsState();
             }).catch(error => {
                 console.error('渲染可视化失败:', error);
                 container.innerHTML = '<div class="history-mermaid-placeholder">可视化渲染失败</div>';
+                historyMermaidCode = '';
+                updateHistoryButtonsState();
             });
+        }
+
+        function applyHistoryZoom() {
+            const svg = document.querySelector('#history-mermaid svg');
+            if (!svg) return;
+            svg.style.transform = `scale(${historyZoom})`;
+            svg.style.transformOrigin = 'center center';
+        }
+
+        function updateHistoryZoomDisplay() {
+            const input = document.getElementById('history-zoom-input');
+            if (input) {
+                input.value = Math.round(historyZoom * 100);
+            }
+        }
+
+        function setHistoryZoom(value) {
+            historyZoom = Math.min(4, Math.max(0.25, value));
+            applyHistoryZoom();
+            updateHistoryZoomDisplay();
+        }
+
+        function adjustHistoryZoom(delta) {
+            setHistoryZoom(historyZoom + delta);
+        }
+
+        function updateHistoryButtonsState() {
+            const disabled = !historyMermaidCode;
+            const openBtn = document.getElementById('history-open-modal');
+            const downloadBtn = document.getElementById('history-download-diagram');
+            const codeBtn = document.getElementById('history-download-code');
+            if (openBtn) openBtn.disabled = disabled;
+            if (downloadBtn) downloadBtn.disabled = disabled;
+            if (codeBtn) codeBtn.disabled = disabled;
+            updateHistoryModalDownloadState();
+        }
+
+        function updateHistoryModalDownloadState() {
+            if (!historyModalDownloadBtn) return;
+            const modalActive = historyModal && historyModal.classList.contains('active');
+            const hasSvg = modalActive && historyModalDiagram && historyModalDiagram.querySelector('svg');
+            historyModalDownloadBtn.disabled = !modalActive || !historyModalCode || !hasSvg;
+        }
+
+        function bindHistoryVisualizationControls() {
+            const zoomOutBtn = document.getElementById('history-zoom-out');
+            const zoomInBtn = document.getElementById('history-zoom-in');
+            const zoomResetBtn = document.getElementById('history-zoom-reset');
+            const zoomInput = document.getElementById('history-zoom-input');
+            const openModalBtn = document.getElementById('history-open-modal');
+            const downloadDiagramBtn = document.getElementById('history-download-diagram');
+            const downloadCodeBtn = document.getElementById('history-download-code');
+
+            if (zoomOutBtn) {
+                zoomOutBtn.onclick = () => adjustHistoryZoom(-0.1);
+            }
+            if (zoomInBtn) {
+                zoomInBtn.onclick = () => adjustHistoryZoom(0.1);
+            }
+            if (zoomResetBtn) {
+                zoomResetBtn.onclick = () => setHistoryZoom(1.0);
+            }
+            if (zoomInput) {
+                const handleInput = () => {
+                    const value = Number(zoomInput.value);
+                    if (!Number.isNaN(value) && value > 0) {
+                        setHistoryZoom(value / 100);
+                    } else {
+                        zoomInput.value = Math.round(historyZoom * 100);
+                    }
+                };
+                zoomInput.onchange = handleInput;
+                zoomInput.onkeyup = (event) => {
+                    if (event.key === 'Enter') {
+                        handleInput();
+                    }
+                };
+            }
+            if (openModalBtn) {
+                openModalBtn.onclick = () => openHistoryModal();
+            }
+            if (downloadDiagramBtn) {
+                downloadDiagramBtn.onclick = () => downloadHistoryDiagram();
+            }
+            if (downloadCodeBtn) {
+                downloadCodeBtn.onclick = () => downloadHistoryCode();
+            }
+
+            updateHistoryZoomDisplay();
+            updateHistoryButtonsState();
+            applyHistoryZoom();
+        }
+
+        async function renderHistoryDiagramImage(code, filenameBase, zoomFactor = 1) {
+            if (!code) {
+                throw new Error('暂无可视化数据');
+            }
+
+            let tempContainer = null;
+            const renderId = `history-download-${Date.now()}`;
+            try {
+                const renderResult = await mermaid.render(renderId, code);
+                tempContainer = document.createElement('div');
+                tempContainer.style.position = 'absolute';
+                tempContainer.style.left = '-10000px';
+                tempContainer.style.top = '-10000px';
+                tempContainer.style.pointerEvents = 'none';
+                tempContainer.style.opacity = '0';
+                tempContainer.innerHTML = renderResult.svg || '';
+                document.body.appendChild(tempContainer);
+
+                const svgElement = tempContainer.querySelector('svg');
+                if (!svgElement) {
+                    throw new Error('图表渲染失败');
+                }
+                normalizeMermaidSvg(svgElement);
+                const { width, height } = captureSvgDimensions(svgElement, true);
+                if (!width || !height) {
+                    throw new Error('无法获取图表尺寸');
+                }
+
+                const clonedSvg = svgElement.cloneNode(true);
+                if (!clonedSvg.getAttribute('xmlns')) {
+                    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+
+                const xml = new XMLSerializer().serializeToString(clonedSvg);
+                const DOMURL = window.URL || window.webkitURL || window;
+                const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+                const url = DOMURL.createObjectURL(svgBlob);
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+
+                const scale = Math.min(
+                    4,
+                    Math.max(1.5, (2000 / Math.min(width, height)) * Math.max(zoomFactor, 1))
+                );
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = Math.max(1, Math.round(width * scale));
+                canvas.height = Math.max(1, Math.round(height * scale));
+
+                await new Promise((resolve, reject) => {
+                    img.onload = () => {
+                        try {
+                            ctx.setTransform(scale, 0, 0, scale, 0, 0);
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0);
+                        } finally {
+                            DOMURL.revokeObjectURL(url);
+                        }
+
+                        const triggerDownload = (href, shouldRevoke = false) => {
+                            const link = document.createElement('a');
+                            link.download = `${filenameBase || 'history-diagram'}.png`;
+                            link.href = href;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            if (shouldRevoke) {
+                                setTimeout(() => DOMURL.revokeObjectURL(href), 1000);
+                            }
+                        };
+
+                        if (canvas.toBlob) {
+                            canvas.toBlob(blob => {
+                                if (blob) {
+                                    const blobUrl = DOMURL.createObjectURL(blob);
+                                    triggerDownload(blobUrl, true);
+                                } else {
+                                    triggerDownload(canvas.toDataURL('image/png'));
+                                }
+                                resolve();
+                            }, 'image/png');
+                        } else {
+                            triggerDownload(canvas.toDataURL('image/png'));
+                            resolve();
+                        }
+                    };
+
+                    img.onerror = (error) => {
+                        DOMURL.revokeObjectURL(url);
+                        reject(error || new Error('图像生成失败'));
+                    };
+                });
+
+                return true;
+            } finally {
+                if (tempContainer && tempContainer.parentNode) {
+                    tempContainer.parentNode.removeChild(tempContainer);
+                }
+            }
+        }
+
+        async function downloadHistoryDiagram(options) {
+            const preferModal = options && options.preferModal;
+            const modalActive = preferModal && historyModal && historyModal.classList.contains('active');
+            const code = modalActive ? historyModalCode : historyMermaidCode;
+            if (!code) {
+                showAdminMessage('error', modalActive ? '放大视图暂无可视化数据' : '暂无可视化数据');
+                return;
+            }
+
+            const triggerButton = modalActive
+                ? historyModalDownloadBtn
+                : document.getElementById('history-download-diagram');
+            if (triggerButton) {
+                triggerButton.disabled = true;
+            }
+
+            try {
+                await renderHistoryDiagramImage(
+                    code,
+                    modalActive ? 'history-diagram-zoomed' : 'history-diagram',
+                    modalActive ? Math.max(historyModalZoom, 1) : Math.max(historyZoom, 1)
+                );
+            } catch (error) {
+                console.error('导出历史流程图失败:', error);
+                showAdminMessage('error', '导出流程图失败，请稍后重试');
+            } finally {
+                if (triggerButton) {
+                    triggerButton.disabled = false;
+                }
+                updateHistoryButtonsState();
+                updateHistoryModalDownloadState();
+            }
+        }
+
+        function downloadHistoryModalDiagram() {
+            downloadHistoryDiagram({ preferModal: true });
+        }
+
+        function downloadHistoryCode() {
+            if (!historyMermaidCode) {
+                showAdminMessage('error', '暂无可视化数据');
+                return;
+            }
+            const blob = new Blob([historyMermaidCode], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.download = 'history-diagram.mmd';
+            const codeUrl = URL.createObjectURL(blob);
+            link.href = codeUrl;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setTimeout(() => URL.revokeObjectURL(codeUrl), 1000);
+        }
+
+        function openHistoryModal() {
+            if (!historyMermaidCode) {
+                showAdminMessage('error', '暂无可视化数据');
+                return;
+            }
+            historyModalCode = historyMermaidCode;
+            historyModalZoom = 1.0;
+            historyModalPanX = 0;
+            historyModalPanY = 0;
+            historyModalDragging = false;
+            if (historyModalZoomInput) {
+                historyModalZoomInput.value = '100';
+            }
+            document.body.classList.add('modal-open');
+            historyModal.classList.add('active');
+            updateHistoryModalDownloadState();
+            renderHistoryModalDiagram();
+        }
+
+        function closeHistoryModal() {
+            if (!historyModal) return;
+            historyModal.classList.remove('active');
+            document.body.classList.remove('modal-open');
+            historyModalDragging = false;
+            historyModalCode = '';
+            historyModalZoom = 1.0;
+            historyModalPanX = 0;
+            historyModalPanY = 0;
+            if (historyModalZoomInput) {
+                historyModalZoomInput.value = '100';
+            }
+            updateHistoryModalTransform();
+            updateHistoryModalZoomDisplay();
+            updateHistoryModalDownloadState();
+        }
+
+        function renderHistoryModalDiagram() {
+            if (!historyModalDiagram) return;
+            if (!historyModalCode) {
+                historyModalDiagram.innerHTML = '<div class="modal-placeholder">暂无可视化内容</div>';
+                updateHistoryModalDownloadState();
+                return;
+            }
+
+            historyModalDiagram.innerHTML = '<div class="modal-placeholder">正在生成图像...</div>';
+            const diagramId = `history-modal-${Date.now()}`;
+            mermaid.render(diagramId, historyModalCode).then(result => {
+                historyModalDiagram.innerHTML = result.svg;
+                const svg = historyModalDiagram.querySelector('svg');
+                if (svg) {
+                    normalizeMermaidSvg(svg);
+                }
+                updateHistoryModalTransform();
+                updateHistoryModalZoomDisplay();
+                updateHistoryModalDownloadState();
+            }).catch(error => {
+                console.error('渲染可视化失败:', error);
+                historyModalDiagram.innerHTML = '<div class="modal-placeholder">可视化渲染失败</div>';
+                updateHistoryModalDownloadState();
+            });
+        }
+
+        function updateHistoryModalTransform() {
+            if (!historyModalDiagram) return;
+            historyModalDiagram.style.transform = `translate(${historyModalPanX}px, ${historyModalPanY}px) scale(${historyModalZoom}) translate(-50%, -50%)`;
+        }
+
+        function updateHistoryModalZoomDisplay() {
+            if (historyModalZoomInput) {
+                historyModalZoomInput.value = Math.round(historyModalZoom * 100);
+            }
+        }
+
+        function setHistoryModalZoom(value) {
+            historyModalZoom = Math.min(4, Math.max(0.25, value));
+            updateHistoryModalTransform();
+            updateHistoryModalZoomDisplay();
+        }
+
+        function zoomHistoryModal(delta) {
+            setHistoryModalZoom(historyModalZoom + delta);
+        }
+
+        function resetHistoryModalView() {
+            setHistoryModalZoom(1.0);
+            historyModalPanX = 0;
+            historyModalPanY = 0;
+            updateHistoryModalTransform();
+        }
+
+        function onHistoryModalPointerDown(event) {
+            if (!historyModalCanvas) return;
+            historyModalDragging = true;
+            historyModalCanvas.classList.add('dragging');
+            if (event.pointerId !== undefined && historyModalCanvas.setPointerCapture) {
+                try {
+                    historyModalCanvas.setPointerCapture(event.pointerId);
+                } catch (err) {
+                    console.warn('Pointer capture failed:', err);
+                }
+            }
+            historyModalDragStartX = event.clientX;
+            historyModalDragStartY = event.clientY;
+            event.preventDefault();
+        }
+
+        function onHistoryModalPointerMove(event) {
+            if (!historyModalDragging) return;
+            const deltaX = event.clientX - historyModalDragStartX;
+            const deltaY = event.clientY - historyModalDragStartY;
+            historyModalPanX += deltaX;
+            historyModalPanY += deltaY;
+            historyModalDragStartX = event.clientX;
+            historyModalDragStartY = event.clientY;
+            updateHistoryModalTransform();
+            event.preventDefault();
+        }
+
+        function endHistoryModalDrag(event) {
+            if (!historyModalDragging) return;
+            historyModalDragging = false;
+            if (historyModalCanvas) {
+                historyModalCanvas.classList.remove('dragging');
+                if (event && event.pointerId !== undefined && historyModalCanvas.releasePointerCapture) {
+                    try {
+                        historyModalCanvas.releasePointerCapture(event.pointerId);
+                    } catch (err) {
+                        console.warn('Release pointer capture failed:', err);
+                    }
+                }
+            }
         }
 
         /* 用户管理 */
@@ -900,19 +1808,34 @@
         let userSearchTimer = null;
         let usersLoading = false;
         let pendingUserReload = false;
+        let userPage = 1;
+        let userTotalPages = 1;
+        let userTotalCount = 0;
+        let userPerPage = 20;
 
         const userTableBody = document.getElementById('user-table-body');
         const userSearchInput = document.getElementById('user-search');
+        const userPerPageSelect = document.getElementById('user-per-page');
+        const userPageInfo = document.getElementById('user-page-info');
+        const userPrevBtn = document.getElementById('user-prev-btn');
+        const userNextBtn = document.getElementById('user-next-btn');
 
-        async function loadUsers() {
+        async function loadUsers(page = 1) {
             if (usersLoading) {
                 pendingUserReload = true;
                 return;
             }
 
             usersLoading = true;
+            userPage = Math.max(1, Number(page) || 1);
+            if (userPerPageSelect) {
+                const parsed = Number(userPerPageSelect.value);
+                if (!Number.isNaN(parsed) && parsed > 0) {
+                    userPerPage = parsed;
+                }
+            }
             if (userTableBody) {
-                userTableBody.innerHTML = '<tr><td colspan="7" class="empty-state">加载中...</td></tr>';
+                userTableBody.innerHTML = '<tr><td colspan="8" class="empty-state">加载中...</td></tr>';
             }
 
             try {
@@ -920,25 +1843,35 @@
                 if (userSearchTerm) {
                     params.append('q', userSearchTerm);
                 }
+                params.append('page', userPage);
+                params.append('per_page', userPerPage);
                 const response = await fetch(`/admin/users?${params.toString()}`);
-                if (!response.ok) {
-                    throw new Error('加载用户失败');
-                }
                 const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || '加载用户失败');
+                }
                 const users = result.users || [];
+                userTotalPages = result.pages || 1;
+                userPage = result.current_page || userPage;
+                userTotalCount = result.total || users.length || 0;
                 renderUserTable(users);
                 updateUserSelectOptions(users);
+                updateUserPaginationControls();
             } catch (error) {
                 console.error(error);
                 if (userTableBody) {
-                    userTableBody.innerHTML = '<tr><td colspan="7" class="empty-state">加载失败，请稍后重试</td></tr>';
+                    userTableBody.innerHTML = '<tr><td colspan="8" class="empty-state">加载失败，请稍后重试</td></tr>';
                 }
                 showAdminMessage('error', error.message || '加载用户列表失败');
+                cachedUsers = [];
+                userTotalCount = 0;
+                userTotalPages = 1;
+                updateUserPaginationControls();
             } finally {
                 usersLoading = false;
                 if (pendingUserReload) {
                     pendingUserReload = false;
-                    loadUsers();
+                    loadUsers(userPage);
                 }
             }
         }
@@ -946,7 +1879,7 @@
         function renderUserTable(users) {
             if (!userTableBody) return;
             if (!users.length) {
-                userTableBody.innerHTML = '<tr><td colspan="7" class="empty-state">暂无用户数据</td></tr>';
+                userTableBody.innerHTML = '<tr><td colspan="8" class="empty-state">暂无用户数据</td></tr>';
                 return;
             }
 
@@ -955,23 +1888,36 @@
                     ? '<span class="badge badge-admin">管理员</span>'
                     : '<span class="badge badge-user">普通用户</span>';
 
-                const createdAt = user.created_at ? new Date(user.created_at).toLocaleString('zh-CN') : '—';
-                const lastLogin = user.last_login ? new Date(user.last_login).toLocaleString('zh-CN') : '—';
+                const createdAt = user.created_at
+                    ? new Date(user.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
+                    : '—';
+                const lastLogin = user.last_login
+                    ? new Date(user.last_login).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
+                    : '—';
                 const visualizationControl = `
                     <label class="visualization-toggle" title="${user.show_visualization ? '可视化已启用' : '可视化已禁用'}">
                         <input type="checkbox" class="toggle-visualization" data-user-id="${user.id}" ${user.show_visualization ? 'checked' : ''}>
                         <span>${user.show_visualization ? '显示' : '隐藏'}</span>
                     </label>
                 `;
+                const displayName = escapeHtml(user.username || '');
+                const actionButtons = `
+                    <div class="user-actions">
+                        <button type="button" class="table-link user-reset" data-user-id="${user.id}" data-username="${displayName}">重置密码</button>
+                        <span class="divider">|</span>
+                        <button type="button" class="table-link danger user-delete" data-user-id="${user.id}" data-username="${displayName}">删除</button>
+                    </div>
+                `;
 
                 return `<tr>
-                    <td>${escapeHtml(user.username)}</td>
+                    <td>${displayName}</td>
                     <td>${escapeHtml(user.email)}</td>
                     <td>${roleBadge}</td>
                     <td>${escapeHtml(createdAt)}</td>
                     <td>${escapeHtml(lastLogin)}</td>
                     <td>${user.total_conversations ?? 0}</td>
                     <td>${visualizationControl}</td>
+                    <td>${actionButtons}</td>
                 </tr>`;
             }).join('');
 
@@ -983,6 +1929,99 @@
                     await updateUserVisualization(toggle, label, userId, enabled);
                 });
             });
+
+            userTableBody.querySelectorAll('.user-reset').forEach(button => {
+                button.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    const userId = Number(button.dataset.userId);
+                    await resetUserPassword(button, userId);
+                });
+            });
+
+            userTableBody.querySelectorAll('.user-delete').forEach(button => {
+                button.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    const userId = Number(button.dataset.userId);
+                    const username = button.dataset.username || '';
+                    await deleteUserAccount(button, userId, username);
+                });
+            });
+        }
+
+        async function resetUserPassword(buttonEl, userId) {
+            if (!buttonEl || Number.isNaN(userId) || !userId) {
+                return;
+            }
+
+            const originalText = buttonEl.textContent;
+            buttonEl.disabled = true;
+            buttonEl.textContent = '重置中...';
+
+            try {
+                const response = await fetch(`/admin/users/${userId}/reset-password`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || '重置密码失败');
+                }
+                showAdminMessage('success', '密码已重置为 ROG');
+            } catch (error) {
+                console.error(error);
+                showAdminMessage('error', error.message || '重置密码失败');
+            } finally {
+                if (buttonEl && buttonEl.isConnected) {
+                    buttonEl.disabled = false;
+                    buttonEl.textContent = originalText;
+                }
+            }
+        }
+
+        async function deleteUserAccount(buttonEl, userId, username) {
+            if (Number.isNaN(userId) || !userId) {
+                return;
+            }
+
+            const displayName = username ? `「${username}」` : '该用户';
+            if (!window.confirm(`确定要删除 ${displayName} 吗？此操作不可撤销。`)) {
+                return;
+            }
+
+            const originalText = buttonEl ? buttonEl.textContent : '';
+            if (buttonEl) {
+                buttonEl.disabled = true;
+                buttonEl.textContent = '删除中...';
+            }
+
+            try {
+                const response = await fetch(`/admin/users/${userId}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || '删除用户失败');
+                }
+                showAdminMessage('success', '用户已删除');
+                const nextPage = userPage > 1 && cachedUsers.length <= 1 ? userPage - 1 : userPage;
+                loadUsers(nextPage);
+            } catch (error) {
+                console.error(error);
+                showAdminMessage('error', error.message || '删除用户失败');
+                if (buttonEl && buttonEl.isConnected) {
+                    buttonEl.disabled = false;
+                    buttonEl.textContent = originalText;
+                }
+            }
+        }
+
+        function updateUserPaginationControls() {
+            if (userPageInfo) {
+                userPageInfo.textContent = `共 ${userTotalCount} 条记录，当前第 ${userPage} / ${Math.max(userTotalPages, 1)} 页`;
+            }
+            if (userPrevBtn) {
+                userPrevBtn.disabled = userPage <= 1;
+            }
+            if (userNextBtn) {
+                userNextBtn.disabled = userPage >= userTotalPages;
+            }
         }
 
         async function updateUserVisualization(toggleEl, labelEl, userId, enabled) {
@@ -1024,13 +2063,34 @@
             userSearchInput.addEventListener('input', () => {
                 if (userSearchTimer) clearTimeout(userSearchTimer);
                 userSearchTerm = userSearchInput.value.trim();
-                userSearchTimer = setTimeout(() => loadUsers(), 300);
+                userSearchTimer = setTimeout(() => loadUsers(1), 300);
             });
         }
 
         const refreshUsersBtn = document.getElementById('refresh-users-btn');
         if (refreshUsersBtn) {
-            refreshUsersBtn.addEventListener('click', () => loadUsers());
+            refreshUsersBtn.addEventListener('click', () => loadUsers(userPage));
+        }
+
+        if (userPerPageSelect) {
+            userPerPageSelect.addEventListener('change', () => {
+                userPage = 1;
+                loadUsers(userPage);
+            });
+        }
+
+        if (userPrevBtn) {
+            userPrevBtn.addEventListener('click', () => {
+                if (userPrevBtn.disabled) return;
+                loadUsers(Math.max(1, userPage - 1));
+            });
+        }
+
+        if (userNextBtn) {
+            userNextBtn.addEventListener('click', () => {
+                if (userNextBtn.disabled) return;
+                loadUsers(userPage + 1);
+            });
         }
 
         const createUserForm = document.getElementById('create-user-form');
@@ -1071,7 +2131,7 @@
                     createUserForm.reset();
                     document.getElementById('new-visualization').checked = true;
                     showAdminMessage('success', result.message || '用户创建成功');
-                    loadUsers();
+                    loadUsers(1);
                 } catch (error) {
                     console.error(error);
                     showAdminMessage('error', error.message || '创建用户失败');
@@ -1249,7 +2309,9 @@
                 const shortQuestion = (conv.question || '').slice(0, 60);
                 const providerLabel = [conv.model, conv.api_provider].filter(Boolean).join(' / ');
                 const methodDisplay = adminMethodMap[conv.reasoning_method] || conv.reasoning_method || '—';
-                const created = conv.created_at ? new Date(conv.created_at).toLocaleString('zh-CN') : '—';
+                const created = conv.created_at
+                    ? new Date(conv.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
+                    : '—';
                 const statusBadgeClass = conv.status === 'completed'
                     ? 'badge-status success'
                     : conv.status === 'failed'
@@ -1264,7 +2326,11 @@
                     <td>${escapeHtml(providerLabel || '—')}<br><span style="color:#6b7280;font-size:12px;">${escapeHtml(methodDisplay)}</span></td>
                     <td><span class="badge ${statusBadgeClass}">${escapeHtml(statusLabel)}</span></td>
                     <td>${escapeHtml(created)}</td>
-                    <td><button type="button" class="table-link" data-id="${conv.id}">查看</button></td>
+                    <td>
+                        <button type="button" class="table-link history-view" data-id="${conv.id}">查看</button>
+                        <span class="divider" style="color:#d1d5db;margin:0 6px;">|</span>
+                        <button type="button" class="table-link danger history-delete" data-id="${conv.id}">删除</button>
+                    </td>
                 </tr>`;
             });
 
@@ -1278,9 +2344,14 @@
         if (historyTableBody) {
             historyTableBody.addEventListener('click', (event) => {
                 const target = event.target;
-                if (target && target.matches('button[data-id]')) {
-                    const id = target.getAttribute('data-id');
-                    showHistoryDetail(id);
+                if (!target || !target.dataset) return;
+                const conversationId = target.getAttribute('data-id');
+                if (!conversationId) return;
+
+                if (target.classList.contains('history-view')) {
+                    showHistoryDetail(conversationId);
+                } else if (target.classList.contains('history-delete')) {
+                    deleteAdminHistory(conversationId);
                 }
             });
         }
@@ -1296,7 +2367,9 @@
             const rawOutput = conv.raw_output && conv.raw_output !== answer ? conv.raw_output : '';
             const statusRaw = conv.status || '';
             const status = statusNameMap[statusRaw] || statusRaw || '未知';
-            const created = conv.created_at ? new Date(conv.created_at).toLocaleString('zh-CN') : '—';
+            const created = conv.created_at
+                ? new Date(conv.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
+                : '—';
             const providerLabel = [conv.api_provider, conv.model].filter(Boolean).join(' / ');
             const methodLabel = adminMethodMap[conv.reasoning_method] || conv.reasoning_method || '—';
 
@@ -1323,9 +2396,50 @@
                 <div class="history-mermaid" id="history-mermaid">
                     <div class="history-mermaid-placeholder">暂无可视化数据</div>
                 </div>
+                <div class="history-visualization-controls">
+                    <div class="history-zoom-group">
+                        <button type="button" class="history-btn" id="history-zoom-out">缩小</button>
+                        <label style="display:flex;align-items:center;gap:6px;">
+                            <input type="number" class="history-zoom-input" id="history-zoom-input" value="100" min="10" max="400" step="1">
+                            <span class="history-zoom-suffix">%</span>
+                        </label>
+                        <button type="button" class="history-btn" id="history-zoom-in">放大</button>
+                        <button type="button" class="history-btn" id="history-zoom-reset">重置</button>
+                    </div>
+                    <div class="history-action-buttons">
+                        <button type="button" class="history-action-button" id="history-open-modal">放大查看</button>
+                        <button type="button" class="history-action-button" id="history-download-diagram">下载流程图</button>
+                        <button type="button" class="history-action-button" id="history-download-code">下载代码</button>
+                    </div>
+                </div>
             `;
 
             renderHistoryVisualization(conv.visualization_data);
+            bindHistoryVisualizationControls();
+        }
+
+        async function deleteAdminHistory(conversationId) {
+            if (!conversationId) return;
+            if (!window.confirm('确定要删除该历史记录吗？此操作不可恢复。')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/admin/history/${conversationId}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) {
+                    throw new Error(result.message || '删除历史记录失败');
+                }
+                showAdminMessage('success', '历史记录已删除');
+                delete historyCache[conversationId];
+                const nextPage = adminHistoryPage > 1 && Object.keys(historyCache).length <= 1 ? adminHistoryPage - 1 : adminHistoryPage;
+                loadAdminHistory(Math.max(1, nextPage));
+            } catch (error) {
+                console.error(error);
+                showAdminMessage('error', error.message || '删除历史记录失败');
+            }
         }
 
         if (historyPrevBtn) {
@@ -1382,8 +2496,67 @@
             });
         });
 
+        if (historyModalZoomInBtn) {
+            historyModalZoomInBtn.addEventListener('click', () => zoomHistoryModal(0.15));
+        }
+        if (historyModalZoomOutBtn) {
+            historyModalZoomOutBtn.addEventListener('click', () => zoomHistoryModal(-0.15));
+        }
+        if (historyModalResetBtn) {
+            historyModalResetBtn.addEventListener('click', resetHistoryModalView);
+        }
+        if (historyModalCloseBtn) {
+            historyModalCloseBtn.addEventListener('click', closeHistoryModal);
+        }
+        if (historyModalZoomInput) {
+            const handleModalZoomInput = () => {
+                const value = Number(historyModalZoomInput.value);
+                if (!Number.isNaN(value) && value > 0) {
+                    setHistoryModalZoom(value / 100);
+                } else {
+                    historyModalZoomInput.value = Math.round(historyModalZoom * 100);
+                }
+            };
+            historyModalZoomInput.addEventListener('change', handleModalZoomInput);
+            historyModalZoomInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    handleModalZoomInput();
+                }
+            });
+        }
+        if (historyModalDownloadBtn) {
+            historyModalDownloadBtn.addEventListener('click', downloadHistoryModalDiagram);
+        }
+        if (historyModalCanvas) {
+            historyModalCanvas.addEventListener('pointerdown', onHistoryModalPointerDown);
+            historyModalCanvas.addEventListener('pointermove', onHistoryModalPointerMove);
+            historyModalCanvas.addEventListener('pointerup', endHistoryModalDrag);
+            historyModalCanvas.addEventListener('pointerleave', endHistoryModalDrag);
+            historyModalCanvas.addEventListener('pointercancel', endHistoryModalDrag);
+            historyModalCanvas.addEventListener('wheel', (event) => {
+                if (!historyModal || !historyModal.classList.contains('active')) {
+                    return;
+                }
+                event.preventDefault();
+                const delta = event.deltaY < 0 ? 0.1 : -0.1;
+                zoomHistoryModal(delta);
+            }, { passive: false });
+        }
+        if (historyModal) {
+            historyModal.addEventListener('click', (event) => {
+                if (event.target === historyModal) {
+                    closeHistoryModal();
+                }
+            });
+        }
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && historyModal && historyModal.classList.contains('active')) {
+                closeHistoryModal();
+            }
+        });
+
         // 初始加载
-        loadUsers();
+        loadUsers(1);
         loadAdminHistory(1);
         loadGlobalApiKeys();
     </script>

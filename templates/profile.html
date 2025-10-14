@@ -160,7 +160,7 @@
                         <div class="conversation-item">
                             <div class="conversation-question">${conv.question.substring(0, 100)}${conv.question.length > 100 ? '...' : ''}</div>
                             <div class="conversation-meta">
-                                时间: ${new Date(conv.created_at).toLocaleString('zh-CN')} | 
+                                时间: ${new Date(conv.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })} | 
                                 方法: ${conv.reasoning_method} | 
                                 状态: ${conv.status === 'completed' ? '成功' : conv.status === 'failed' ? '失败' : '处理中'}
                             </div>
