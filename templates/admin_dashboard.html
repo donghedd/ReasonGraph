@@ -1142,6 +1142,62 @@
             pending: '待处理'
         };
 
+        const shanghaiDateFormatter = new Intl.DateTimeFormat('zh-CN', {
+            timeZone: 'Asia/Shanghai',
+            hour12: false,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        function parseTimestamp(value) {
+            if (value == null) return null;
+            if (value instanceof Date) {
+                return Number.isNaN(value.getTime()) ? null : value;
+            }
+            if (typeof value === 'number' && Number.isFinite(value)) {
+                return new Date(value);
+            }
+            if (typeof value === 'string') {
+                let input = value.trim();
+                if (!input) return null;
+                if (/^\d+$/.test(input)) {
+                    const numeric = Number(input);
+                    if (!Number.isFinite(numeric)) return null;
+                    const ms = input.length >= 13 ? numeric : numeric * 1000;
+                    return new Date(ms);
+                }
+                const hasTimezone = /[zZ]|[+-]\d\d:?(\d\d)?$/.test(input);
+                if (!hasTimezone) {
+                    if (input.includes(' ')) {
+                        input = input.replace(' ', 'T');
+                    }
+                    if (!input.includes('T')) {
+                        input = `${input}T00:00:00`;
+                    }
+                    input = `${input}Z`;
+                }
+                const parsed = new Date(input);
+                if (!Number.isNaN(parsed.getTime())) {
+                    return parsed;
+                }
+            }
+            return null;
+        }
+
+        function formatShanghaiTime(value, fallback = '—') {
+            const date = parseTimestamp(value);
+            if (!date) return fallback;
+            try {
+                return shanghaiDateFormatter.format(date);
+            } catch (error) {
+                return fallback;
+            }
+        }
+
         function showAdminMessage(type, text) {
             if (!messageBox) return;
             messageBox.className = 'message ' + (type || 'info');
@@ -1888,12 +1944,8 @@
                     ? '<span class="badge badge-admin">管理员</span>'
                     : '<span class="badge badge-user">普通用户</span>';
 
-                const createdAt = user.created_at
-                    ? new Date(user.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
-                    : '—';
-                const lastLogin = user.last_login
-                    ? new Date(user.last_login).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
-                    : '—';
+                const createdAt = formatShanghaiTime(user.created_at, '—');
+                const lastLogin = formatShanghaiTime(user.last_login, '—');
                 const visualizationControl = `
                     <label class="visualization-toggle" title="${user.show_visualization ? '可视化已启用' : '可视化已禁用'}">
                         <input type="checkbox" class="toggle-visualization" data-user-id="${user.id}" ${user.show_visualization ? 'checked' : ''}>
@@ -2309,9 +2361,7 @@
                 const shortQuestion = (conv.question || '').slice(0, 60);
                 const providerLabel = [conv.model, conv.api_provider].filter(Boolean).join(' / ');
                 const methodDisplay = adminMethodMap[conv.reasoning_method] || conv.reasoning_method || '—';
-                const created = conv.created_at
-                    ? new Date(conv.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
-                    : '—';
+                const created = formatShanghaiTime(conv.created_at, '—');
                 const statusBadgeClass = conv.status === 'completed'
                     ? 'badge-status success'
                     : conv.status === 'failed'
@@ -2367,9 +2417,7 @@
             const rawOutput = conv.raw_output && conv.raw_output !== answer ? conv.raw_output : '';
             const statusRaw = conv.status || '';
             const status = statusNameMap[statusRaw] || statusRaw || '未知';
-            const created = conv.created_at
-                ? new Date(conv.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
-                : '—';
+            const created = formatShanghaiTime(conv.created_at, '—');
             const providerLabel = [conv.api_provider, conv.model].filter(Boolean).join(' / ');
             const methodLabel = adminMethodMap[conv.reasoning_method] || conv.reasoning_method || '—';
 

@@ -2164,21 +2164,61 @@
             return text.length > limit ? `${text.slice(0, limit)}...` : text;
         };
 
+        const shanghaiDateFormatter = new Intl.DateTimeFormat('zh-CN', {
+            timeZone: 'Asia/Shanghai',
+            hour12: false,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        function parseTimestamp(value) {
+            if (value == null) return null;
+            if (value instanceof Date) {
+                return Number.isNaN(value.getTime()) ? null : value;
+            }
+            if (typeof value === 'number' && Number.isFinite(value)) {
+                return new Date(value);
+            }
+            if (typeof value === 'string') {
+                let input = value.trim();
+                if (!input) return null;
+                if (/^\d+$/.test(input)) {
+                    const numeric = Number(input);
+                    if (!Number.isFinite(numeric)) return null;
+                    const ms = input.length >= 13 ? numeric : numeric * 1000;
+                    return new Date(ms);
+                }
+                const hasTimezone = /[zZ]|[+-]\d\d:?(\d\d)?$/.test(input);
+                if (!hasTimezone) {
+                    if (input.includes(' ')) {
+                        input = input.replace(' ', 'T');
+                    }
+                    if (!input.includes('T')) {
+                        input = `${input}T00:00:00`;
+                    }
+                    input = `${input}Z`;
+                }
+                const parsed = new Date(input);
+                if (!Number.isNaN(parsed.getTime())) {
+                    return parsed;
+                }
+            }
+            return null;
+        }
+
         const formatDateTime = (value) => {
-            if (!value) return '未知时间';
+            const date = parseTimestamp(value);
+            if (!date) {
+                return value || '未知时间';
+            }
             try {
-                return new Date(value).toLocaleString('zh-CN', {
-                    hour12: false,
-                    timeZone: 'Asia/Shanghai',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
+                return shanghaiDateFormatter.format(date);
             } catch (error) {
-                return value;
+                return value || '未知时间';
             }
         };
 

@@ -123,6 +123,62 @@
     </div>
 
     <script>
+        const shanghaiFormatter = new Intl.DateTimeFormat('zh-CN', {
+            timeZone: 'Asia/Shanghai',
+            hour12: false,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+
+        function parseTimestamp(value) {
+            if (value == null) return null;
+            if (value instanceof Date) {
+                return Number.isNaN(value.getTime()) ? null : value;
+            }
+            if (typeof value === 'number' && Number.isFinite(value)) {
+                return new Date(value);
+            }
+            if (typeof value === 'string') {
+                let input = value.trim();
+                if (!input) return null;
+                if (/^\d+$/.test(input)) {
+                    const numeric = Number(input);
+                    if (!Number.isFinite(numeric)) return null;
+                    const ms = input.length >= 13 ? numeric : numeric * 1000;
+                    return new Date(ms);
+                }
+                const hasTimezone = /[zZ]|[+-]\d\d:?(\d\d)?$/.test(input);
+                if (!hasTimezone) {
+                    if (input.includes(' ')) {
+                        input = input.replace(' ', 'T');
+                    }
+                    if (!input.includes('T')) {
+                        input = `${input}T00:00:00`;
+                    }
+                    input = `${input}Z`;
+                }
+                const parsed = new Date(input);
+                if (!Number.isNaN(parsed.getTime())) {
+                    return parsed;
+                }
+            }
+            return null;
+        }
+
+        function formatShanghaiTime(value, fallback = '未知时间') {
+            const date = parseTimestamp(value);
+            if (!date) return fallback;
+            try {
+                return shanghaiFormatter.format(date);
+            } catch (error) {
+                return fallback;
+            }
+        }
+
         // 加载用户统计信息和最近对话
         async function loadProfileData() {
             try {
@@ -160,7 +216,7 @@
                         <div class="conversation-item">
                             <div class="conversation-question">${conv.question.substring(0, 100)}${conv.question.length > 100 ? '...' : ''}</div>
                             <div class="conversation-meta">
-                                时间: ${new Date(conv.created_at).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })} | 
+                                时间: ${formatShanghaiTime(conv.created_at)} | 
                                 方法: ${conv.reasoning_method} | 
                                 状态: ${conv.status === 'completed' ? '成功' : conv.status === 'failed' ? '失败' : '处理中'}
                             </div>
