@@ -414,8 +414,9 @@ class ReasoningConfig:
         default_provider_id = ""
         default_model = ""
         if api_providers:
-            # 优先选择第一个存在模型的提供商
-            provider_with_models = next((p for p in api_providers if p["models"]), api_providers[0])
+            # 优先选择 DeepSeek，如未配置则退回到第一个存在模型的提供商
+            preferred_provider = next((p for p in api_providers if p["id"] == "deepseek" and p["models"]), None)
+            provider_with_models = preferred_provider or next((p for p in api_providers if p["models"]), api_providers[0])
             default_provider_id = provider_with_models["id"]
             default_model = provider_with_models["models"][0] if provider_with_models["models"] else ""
 
