@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>登录 - ReasonGraph</title>
+    <title>登录 - 推理可视化</title>
     <link rel="icon" href="{{ url_for('static', filename='assets/idea.png') }}" type="image/x-icon">
     <style>
         body {
@@ -29,16 +29,19 @@
             margin-bottom: 30px;
         }
         
-        .login-header h1 {
+        .login-title-cn {
             color: #333;
             margin: 0;
             font-size: 28px;
             font-weight: 300;
         }
-        
-        .login-header p {
+
+        .login-title-en {
             color: #666;
-            margin: 10px 0 0 0;
+            margin: 6px 0 0 0;
+            font-size: 18px;
+            font-weight: 300;
+            letter-spacing: 1.2px;
         }
         
         .form-group {
@@ -135,8 +138,8 @@
 <body>
     <div class="login-container">
         <div class="login-header">
-            <h1>ReasonGraph</h1>
-            <p>登录到您的账户</p>
+            <div class="login-title-cn">推理可视化</div>
+            <div class="login-title-en">Reasoning Visualization</div>
         </div>
         
         <div id="message-container"></div>

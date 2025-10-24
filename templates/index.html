@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ReasonGraph</title>
+    <title>推理可视化 | Reasoning Visualization</title>
     <link rel="icon" href="static/assets/idea.png" type="image/x-icon">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
@@ -51,11 +51,25 @@
             padding: 24px 36px 40px;
         }
 
-        .banner-content h1 {
-            font-size: 3.2em;
+        .banner-title {
             margin: 96px 0 24px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .banner-title-cn {
+            font-size: 3.2em;
             font-weight: 300;
-            letter-spacing: 2.5px;
+            letter-spacing: 4px;
+        }
+
+        .banner-title-en {
+            font-size: 1.6em;
+            font-weight: 300;
+            letter-spacing: 3px;
+            opacity: 0.92;
         }
 
         .search-area {
@@ -1045,7 +1059,10 @@
             <!-- 用户信息 -->
             
 
-            <h1>ReasonGraph</h1>
+            <div class="banner-title">
+                <div class="banner-title-cn">推理可视化</div>
+                <div class="banner-title-en">Reasoning Visualization</div>
+            </div>
             <div class="search-area">
                 <div class="search-input-container">
                     <textarea id="question" class="search-input" placeholder="在此输入您的问题..." rows="1"></textarea>
