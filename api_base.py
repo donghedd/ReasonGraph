@@ -473,7 +473,8 @@ class QwenAPI(BaseAPI):
         try:
             self.client = OpenAI(
                 api_key=api_key,
-                base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
+                base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+                # base_url="https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
             )
         except Exception as e:
             self._handle_error(e, "initialization")
